@@ -41,13 +41,18 @@ internal sealed class TextureResourceStore
 
     public TextureAsset Load(string asset)
     {
+        return LoadTracked(asset).Resource;
+    }
+
+    public ResourceLoadResult<TextureAsset> LoadTracked(string asset)
+    {
         string id = ResourcePathResolver.NormalizeAssetId(asset, ".ppm");
-        Task<TextureAsset>? loading = null;
+        Task<ResourceLoadResult<TextureAsset>>? loading = null;
         lock (_sync)
         {
             if (_cache.TryGetValue(id, out TextureAsset? texture))
             {
-                return texture;
+                return new ResourceLoadResult<TextureAsset>(texture, false);
             }
 
             if (_loading.TryGetValue(id, out LoadOperation? operation))
@@ -58,7 +63,7 @@ internal sealed class TextureResourceStore
 
         if (loading is not null)
         {
-            return loading.GetAwaiter().GetResult();
+            return new ResourceLoadResult<TextureAsset>(loading.GetAwaiter().GetResult().Resource, false);
         }
 
         TextureAsset loaded = LoadPpm(id);
@@ -66,37 +71,50 @@ internal sealed class TextureResourceStore
         {
             if (_cache.TryGetValue(id, out TextureAsset? texture))
             {
-                return texture;
+                return new ResourceLoadResult<TextureAsset>(texture, false);
             }
 
             _cache[id] = loaded;
-            return loaded;
+            return new ResourceLoadResult<TextureAsset>(loaded, true);
         }
     }
 
     public ValueTask<TextureAsset> LoadAsync(string asset, CancellationToken cancellationToken = default)
+    {
+        ValueTask<ResourceLoadResult<TextureAsset>> loadTask = LoadTrackedAsync(asset, cancellationToken);
+        if (loadTask.IsCompletedSuccessfully)
+        {
+            return new ValueTask<TextureAsset>(loadTask.GetAwaiter().GetResult().Resource);
+        }
+
+        return CompleteLoadAsync(loadTask);
+    }
+
+    public ValueTask<ResourceLoadResult<TextureAsset>> LoadTrackedAsync(
+        string asset,
+        CancellationToken cancellationToken = default)
     {
         string id = ResourcePathResolver.NormalizeAssetId(asset, ".ppm");
         lock (_sync)
         {
             if (_cache.TryGetValue(id, out TextureAsset? texture))
             {
-                return new ValueTask<TextureAsset>(texture);
+                return new ValueTask<ResourceLoadResult<TextureAsset>>(new ResourceLoadResult<TextureAsset>(texture, false));
             }
 
             if (_loading.TryGetValue(id, out LoadOperation? operation))
             {
-                return new ValueTask<TextureAsset>(operation.LoadTask);
+                return AwaitExistingLoadAsync(operation.LoadTask);
             }
 
             var newOperation = new LoadOperation(_version);
             newOperation.LoadTask = LoadAndCacheAsync(id, newOperation, cancellationToken);
             _loading[id] = newOperation;
-            return new ValueTask<TextureAsset>(newOperation.LoadTask);
+            return new ValueTask<ResourceLoadResult<TextureAsset>>(newOperation.LoadTask);
         }
     }
 
-    private async Task<TextureAsset> LoadAndCacheAsync(
+    private async Task<ResourceLoadResult<TextureAsset>> LoadAndCacheAsync(
         string id,
         LoadOperation operation,
         CancellationToken cancellationToken)
@@ -114,16 +132,16 @@ internal sealed class TextureResourceStore
 
                 if (operation.Version != _version)
                 {
-                    return loaded;
+                    return new ResourceLoadResult<TextureAsset>(loaded, false);
                 }
 
                 if (_cache.TryGetValue(id, out TextureAsset? texture))
                 {
-                    return texture;
+                    return new ResourceLoadResult<TextureAsset>(texture, false);
                 }
 
                 _cache[id] = loaded;
-                return loaded;
+                return new ResourceLoadResult<TextureAsset>(loaded, true);
             }
         }
         catch
@@ -139,6 +157,20 @@ internal sealed class TextureResourceStore
 
             throw;
         }
+    }
+
+    private static async ValueTask<TextureAsset> CompleteLoadAsync(
+        ValueTask<ResourceLoadResult<TextureAsset>> loadTask)
+    {
+        ResourceLoadResult<TextureAsset> result = await loadTask.ConfigureAwait(false);
+        return result.Resource;
+    }
+
+    private static async ValueTask<ResourceLoadResult<TextureAsset>> AwaitExistingLoadAsync(
+        Task<ResourceLoadResult<TextureAsset>> loadTask)
+    {
+        ResourceLoadResult<TextureAsset> result = await loadTask.ConfigureAwait(false);
+        return new ResourceLoadResult<TextureAsset>(result.Resource, false);
     }
 
     public bool IsLoaded(string asset)
@@ -264,6 +296,6 @@ internal sealed class TextureResourceStore
         }
 
         public int Version { get; }
-        public Task<TextureAsset> LoadTask { get; set; } = null!;
+        public Task<ResourceLoadResult<TextureAsset>> LoadTask { get; set; } = null!;
     }
 }

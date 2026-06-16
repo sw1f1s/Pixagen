@@ -8,6 +8,12 @@ public sealed class RenderPrimitiveBatch
     public List<TrianglePrimitive> ShadowTriangles { get; } = new();
     public bool HasShadowCasters { get; private set; }
 
+    public void EnsureCapacity(int triangles, int shadowTriangles)
+    {
+        Triangles.EnsureCapacity(triangles);
+        ShadowTriangles.EnsureCapacity(shadowTriangles);
+    }
+
     public void Clear()
     {
         Triangles.Clear();

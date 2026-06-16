@@ -11,6 +11,7 @@ public sealed class RenderFeatureSystemsGroup : IGroupSystem
     public object[] Injects { get; } =
     [
         new RenderSceneCache(),
+        new RenderAssetResolver(),
     ];
 
     public ISystem[] Systems { get; } =

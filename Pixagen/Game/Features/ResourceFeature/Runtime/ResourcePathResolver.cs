@@ -5,6 +5,7 @@ internal static class ResourcePathResolver
     private const string MeshRoot = "Content/Meshes";
     private const string TextureRoot = "Content/Textures";
     private const string SceneRoot = "Content/Scenes";
+    private const string VulkanShaderRoot = "Content/Shaders/Vulkan";
     private const string DefaultSceneName = "default.scene.json";
 
     public static string NormalizeAssetId(string asset, string extension)
@@ -37,6 +38,11 @@ internal static class ResourcePathResolver
     public static string ResolveDefaultScenePath()
     {
         return Path.Combine(AppContext.BaseDirectory, SceneRoot, DefaultSceneName);
+    }
+
+    public static string ResolveVulkanShaderPath(string fileName)
+    {
+        return ResolveContentPath(VulkanShaderRoot, fileName, "Vulkan shader");
     }
 
     public static string NormalizeScenePath(string path)

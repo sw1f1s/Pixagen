@@ -21,6 +21,7 @@ public sealed class RaycastRenderSystem : IUpdateSystem
     private readonly CustomInject<IRaycastComputeRenderer> _computeRenderer = default;
     private readonly CustomInject<ResourceManager> _resources = default;
     private readonly CustomInject<RenderSceneCache> _sceneCache = default;
+    private readonly CustomInject<RenderAssetResolver> _assets = default;
     private readonly CustomInject<RenderSettings> _settings = default;
     private readonly CustomInject<PerformanceStats> _performanceStats = default;
     private readonly FilterInject<Include<Transform, Camera>> _cameras = default;
@@ -40,6 +41,7 @@ public sealed class RaycastRenderSystem : IUpdateSystem
     public void Update()
     {
         FrameBuffer buffer = _frameBuffer.Value;
+        SyncResourceCaches();
 
         Entity cameraEntity = GetCamera();
         if (cameraEntity == Entity.Empty)
@@ -136,6 +138,8 @@ public sealed class RaycastRenderSystem : IUpdateSystem
     private void BuildDynamicCache()
     {
         RenderPrimitiveBatch primitives = _sceneCache.Value.Dynamic;
+        RenderAssetResolver assets = _assets.Value;
+        ResourceManager resources = _resources.Value;
         primitives.Clear();
 
         foreach (Entity entity in _meshes.Value)
@@ -147,7 +151,11 @@ public sealed class RaycastRenderSystem : IUpdateSystem
 
             ref Transform transform = ref _transforms.Get(entity);
             ref Mesh mesh = ref _meshComponents.Get(entity);
-            RenderPrimitiveFactory.AddMeshTriangles(transform, mesh, ResolveMaterial(entity), _resources.Value, primitives.Triangles);
+            RenderPrimitiveFactory.AddMeshTriangles(
+                transform,
+                assets.ResolveMesh(mesh, resources),
+                ResolveMaterial(entity, resources, assets),
+                primitives.Triangles);
         }
 
         foreach (Entity entity in _shadowMeshes.Value)
@@ -159,7 +167,11 @@ public sealed class RaycastRenderSystem : IUpdateSystem
 
             ref Transform transform = ref _transforms.Get(entity);
             ref Mesh mesh = ref _meshComponents.Get(entity);
-            RenderPrimitiveFactory.AddShadowMeshTriangles(transform, mesh, ResolveMaterial(entity), _resources.Value, primitives.ShadowTriangles);
+            RenderPrimitiveFactory.AddShadowMeshTriangles(
+                transform,
+                assets.ResolveMesh(mesh, resources),
+                ResolveMaterial(entity, resources, assets),
+                primitives.ShadowTriangles);
         }
 
         primitives.RefreshShadowState();
@@ -224,10 +236,21 @@ public sealed class RaycastRenderSystem : IUpdateSystem
         return MathF.Max(RenderMath.ToFloat(distance), RenderMath.Epsilon);
     }
 
-    private SurfaceMaterial ResolveMaterial(Entity entity)
+    private void SyncResourceCaches()
+    {
+        if (_assets.Value.Sync(_resources.Value))
+        {
+            _sceneCache.Value.Clear();
+        }
+    }
+
+    private SurfaceMaterial ResolveMaterial(
+        Entity entity,
+        ResourceManager resources,
+        RenderAssetResolver assets)
     {
         return _materials.Has(entity)
-            ? RenderPrimitiveFactory.ResolveMaterial(_materials.Get(entity), _resources.Value)
+            ? assets.ResolveMaterial(_materials.Get(entity), resources)
             : SurfaceMaterial.Default;
     }
 

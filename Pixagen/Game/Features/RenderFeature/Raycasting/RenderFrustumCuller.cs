@@ -13,6 +13,7 @@ public sealed class RenderFrustumCuller
         float shadowRenderDistance)
     {
         destination.Clear();
+        destination.EnsureCapacity(source.Triangles.Count, source.ShadowTriangles.Count);
 
         foreach (TrianglePrimitive triangle in source.Triangles)
         {

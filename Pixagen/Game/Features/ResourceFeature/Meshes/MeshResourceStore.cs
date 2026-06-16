@@ -26,13 +26,18 @@ internal sealed class MeshResourceStore
 
     public MeshAsset Load(string asset)
     {
+        return LoadTracked(asset).Resource;
+    }
+
+    public ResourceLoadResult<MeshAsset> LoadTracked(string asset)
+    {
         string id = ResourcePathResolver.NormalizeAssetId(asset, ".obj");
-        Task<MeshAsset>? loading = null;
+        Task<ResourceLoadResult<MeshAsset>>? loading = null;
         lock (_sync)
         {
             if (_cache.TryGetValue(id, out MeshAsset? mesh))
             {
-                return mesh;
+                return new ResourceLoadResult<MeshAsset>(mesh, false);
             }
 
             if (_loading.TryGetValue(id, out LoadOperation? operation))
@@ -43,7 +48,7 @@ internal sealed class MeshResourceStore
 
         if (loading is not null)
         {
-            return loading.GetAwaiter().GetResult();
+            return new ResourceLoadResult<MeshAsset>(loading.GetAwaiter().GetResult().Resource, false);
         }
 
         MeshAsset loaded = LoadObj(id);
@@ -51,37 +56,50 @@ internal sealed class MeshResourceStore
         {
             if (_cache.TryGetValue(id, out MeshAsset? mesh))
             {
-                return mesh;
+                return new ResourceLoadResult<MeshAsset>(mesh, false);
             }
 
             _cache[id] = loaded;
-            return loaded;
+            return new ResourceLoadResult<MeshAsset>(loaded, true);
         }
     }
 
     public ValueTask<MeshAsset> LoadAsync(string asset, CancellationToken cancellationToken = default)
+    {
+        ValueTask<ResourceLoadResult<MeshAsset>> loadTask = LoadTrackedAsync(asset, cancellationToken);
+        if (loadTask.IsCompletedSuccessfully)
+        {
+            return new ValueTask<MeshAsset>(loadTask.GetAwaiter().GetResult().Resource);
+        }
+
+        return CompleteLoadAsync(loadTask);
+    }
+
+    public ValueTask<ResourceLoadResult<MeshAsset>> LoadTrackedAsync(
+        string asset,
+        CancellationToken cancellationToken = default)
     {
         string id = ResourcePathResolver.NormalizeAssetId(asset, ".obj");
         lock (_sync)
         {
             if (_cache.TryGetValue(id, out MeshAsset? mesh))
             {
-                return new ValueTask<MeshAsset>(mesh);
+                return new ValueTask<ResourceLoadResult<MeshAsset>>(new ResourceLoadResult<MeshAsset>(mesh, false));
             }
 
             if (_loading.TryGetValue(id, out LoadOperation? operation))
             {
-                return new ValueTask<MeshAsset>(operation.LoadTask);
+                return AwaitExistingLoadAsync(operation.LoadTask);
             }
 
             var newOperation = new LoadOperation(_version);
             newOperation.LoadTask = LoadAndCacheAsync(id, newOperation, cancellationToken);
             _loading[id] = newOperation;
-            return new ValueTask<MeshAsset>(newOperation.LoadTask);
+            return new ValueTask<ResourceLoadResult<MeshAsset>>(newOperation.LoadTask);
         }
     }
 
-    private async Task<MeshAsset> LoadAndCacheAsync(
+    private async Task<ResourceLoadResult<MeshAsset>> LoadAndCacheAsync(
         string id,
         LoadOperation operation,
         CancellationToken cancellationToken)
@@ -99,16 +117,16 @@ internal sealed class MeshResourceStore
 
                 if (operation.Version != _version)
                 {
-                    return loaded;
+                    return new ResourceLoadResult<MeshAsset>(loaded, false);
                 }
 
                 if (_cache.TryGetValue(id, out MeshAsset? mesh))
                 {
-                    return mesh;
+                    return new ResourceLoadResult<MeshAsset>(mesh, false);
                 }
 
                 _cache[id] = loaded;
-                return loaded;
+                return new ResourceLoadResult<MeshAsset>(loaded, true);
             }
         }
         catch
@@ -124,6 +142,20 @@ internal sealed class MeshResourceStore
 
             throw;
         }
+    }
+
+    private static async ValueTask<MeshAsset> CompleteLoadAsync(
+        ValueTask<ResourceLoadResult<MeshAsset>> loadTask)
+    {
+        ResourceLoadResult<MeshAsset> result = await loadTask.ConfigureAwait(false);
+        return result.Resource;
+    }
+
+    private static async ValueTask<ResourceLoadResult<MeshAsset>> AwaitExistingLoadAsync(
+        Task<ResourceLoadResult<MeshAsset>> loadTask)
+    {
+        ResourceLoadResult<MeshAsset> result = await loadTask.ConfigureAwait(false);
+        return new ResourceLoadResult<MeshAsset>(result.Resource, false);
     }
 
     public bool IsLoaded(string asset)
@@ -308,6 +340,6 @@ internal sealed class MeshResourceStore
         }
 
         public int Version { get; }
-        public Task<MeshAsset> LoadTask { get; set; } = null!;
+        public Task<ResourceLoadResult<MeshAsset>> LoadTask { get; set; } = null!;
     }
 }

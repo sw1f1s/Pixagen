@@ -35,9 +35,14 @@ public sealed class FrameBuffer
         Clear();
     }
 
-    public void Clear(FrameCell? cell = null)
+    public void Clear()
     {
-        Array.Fill(_cells, cell ?? FrameCell.Empty);
+        Clear(FrameCell.Empty);
+    }
+
+    public void Clear(FrameCell cell)
+    {
+        Array.Fill(_cells, cell);
     }
 
     public void Set(int x, int y, FrameCell cell)

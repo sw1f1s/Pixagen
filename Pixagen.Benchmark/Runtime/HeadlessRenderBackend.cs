@@ -47,15 +47,10 @@ public sealed class HeadlessRenderBackend : IRenderBackend, IUiOverlayRenderBack
         for (int i = 0; i < cells.Length; i += stride)
         {
             FrameCell cell = cells[i];
-            checksum += cell.Glyph;
-            checksum += cell.Foreground.R;
-            checksum += cell.Foreground.G;
-            checksum += cell.Foreground.B;
-            checksum += cell.Background.R;
-            checksum += cell.Background.G;
-            checksum += cell.Background.B;
-            checksum += cell.ForegroundAlpha;
-            checksum += cell.BackgroundAlpha;
+            checksum += cell.Color.R;
+            checksum += cell.Color.G;
+            checksum += cell.Color.B;
+            checksum += cell.Alpha;
         }
 
         if (_uiOverlay is not null)

@@ -1,10 +1,8 @@
 using Pixagen.Game.Features.RenderFeature.Components;
 using Pixagen.Game.Features.RenderFeature.Meshes;
 using Pixagen.Game.Features.RenderFeature.Textures;
-using Pixagen.Game.Features.ResourceFeature.Runtime;
 using Pixagen.Game.Features.SharedFeature.Components;
 using Pixagen.Rendering;
-using Pixagen.Ecs.Runtime;
 using Float3 = System.Numerics.Vector3;
 using Float2 = System.Numerics.Vector2;
 using FloatQuaternion = System.Numerics.Quaternion;
@@ -15,26 +13,6 @@ public static class RenderPrimitiveFactory
 {
     public static void AddMeshTriangles(
         in Transform transform,
-        in Mesh mesh,
-        SurfaceMaterial material,
-        ResourceManager resources,
-        List<TrianglePrimitive> destination)
-    {
-        AddMeshTriangles(transform, resources.GetMesh(mesh.Asset), material, destination);
-    }
-
-    public static void AddShadowMeshTriangles(
-        in Transform transform,
-        in Mesh mesh,
-        SurfaceMaterial material,
-        ResourceManager resources,
-        List<TrianglePrimitive> destination)
-    {
-        AddMeshTriangles(transform, resources.GetMesh(mesh.Asset), material, destination);
-    }
-
-    private static void AddMeshTriangles(
-        in Transform transform,
         MeshAsset mesh,
         SurfaceMaterial material,
         List<TrianglePrimitive> destination)
@@ -43,6 +21,7 @@ public static class RenderPrimitiveFactory
         Float3 position = RenderMath.ToFloat(transform.Position);
         Float3 scale = RenderMath.ToFloat(transform.Scale);
         Float3[] vertices = mesh.Vertices;
+        destination.EnsureCapacity(destination.Count + mesh.Triangles.Length);
 
         foreach (MeshTriangle triangle in mesh.Triangles)
         {
@@ -57,15 +36,23 @@ public static class RenderPrimitiveFactory
         }
     }
 
+    public static void AddShadowMeshTriangles(
+        in Transform transform,
+        MeshAsset mesh,
+        SurfaceMaterial material,
+        List<TrianglePrimitive> destination)
+    {
+        AddMeshTriangles(transform, mesh, material, destination);
+    }
+
     private static Float3 TransformPoint(Float3 point, Float3 position, FloatQuaternion rotation, Float3 scale)
     {
         return Float3.Transform(point * scale, rotation) + position;
     }
 
-    public static SurfaceMaterial ResolveMaterial(in Material material, ResourceManager resources)
+    public static SurfaceMaterial ResolveMaterial(in Material material, TextureAsset? texture)
     {
         PixelColor color = material.Color;
-        TextureAsset? texture = null;
         float opacity = 1f;
         float alphaCutoff = 0.01f;
         MaterialShaderKind shader = material.Shader;
@@ -74,7 +61,6 @@ public static class RenderPrimitiveFactory
 
         if (material.Texture is { } textureComponent && !string.IsNullOrWhiteSpace(textureComponent.Asset))
         {
-            texture = resources.GetTexture(textureComponent.Asset);
             textureTiling = ResolveTextureTiling(textureComponent);
             textureOffset = ResolveTextureOffset(textureComponent);
         }

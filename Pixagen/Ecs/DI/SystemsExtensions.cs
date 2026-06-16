@@ -6,9 +6,11 @@ namespace Pixagen.Ecs.DI
     {
         public static ISystems Inject(this ISystems systems, params object[] injects)
         {
-            injects = ResolveInjects(systems, injects);
+            object[] serviceInjects = injects ?? Array.Empty<object>();
+            injects = ResolveInjects(systems, serviceInjects);
 
             InjectGroupServices(systems, injects);
+            InjectServiceObjects(systems, serviceInjects, injects);
 
             foreach (var system in systems.AllSystems)
             {
@@ -74,6 +76,34 @@ namespace Pixagen.Ecs.DI
                     AfterInject(inject);
                 }
             }
+        }
+
+        private static void InjectServiceObjects(ISystems systems, object[] serviceInjects, object[] injects)
+        {
+            for (int i = 0; i < serviceInjects.Length; i++)
+            {
+                object inject = serviceInjects[i];
+                if (inject is null || HasEarlierReference(serviceInjects, i, inject))
+                {
+                    continue;
+                }
+
+                InjectToObject(systems, inject, injects);
+                AfterInject(inject);
+            }
+        }
+
+        private static bool HasEarlierReference(object[] items, int index, object value)
+        {
+            for (int i = 0; i < index; i++)
+            {
+                if (ReferenceEquals(items[i], value))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         private static void InjectToObject(ISystems systems, object target, params object[] injects)

@@ -1,3 +1,4 @@
+using System.Threading;
 using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 using Pixagen.Game.Features.RenderFeature.Components;
@@ -5,8 +6,10 @@ using Pixagen.Game.Features.RenderFeature.Meshes;
 using Pixagen.Game.Features.RenderFeature.Textures;
 using Pixagen.Game.Features.ResourceFeature.Meshes;
 using Pixagen.Game.Features.ResourceFeature.Scenes;
+using Pixagen.Game.Features.ResourceFeature.Shaders;
 using Pixagen.Game.Features.ResourceFeature.Textures;
 using Pixagen.Game.Features.ScenesFeature.Serialization;
+using Veldrid;
 
 namespace Pixagen.Game.Features.ResourceFeature.Runtime;
 
@@ -16,21 +19,43 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
     private readonly MeshResourceStore _meshes = new();
     private readonly TextureResourceStore _textures = new();
     private readonly SceneResourceStore _scenes = new();
+    private readonly VulkanShaderResourceStore _vulkanShaders = new();
     private readonly Dictionary<string, SceneResourceScope> _sceneScopes = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, int> _meshSceneReferences = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, int> _textureSceneReferences = new(StringComparer.OrdinalIgnoreCase);
+    private int _revision;
     private bool _disposed;
+
+    public int Revision => Volatile.Read(ref _revision);
 
     public MeshAsset LoadMesh(string asset)
     {
         ThrowIfDisposed();
-        return _meshes.Load(asset);
+        ResourceLoadResult<MeshAsset> result = _meshes.LoadTracked(asset);
+        if (result.Inserted)
+        {
+            IncrementRevision();
+        }
+
+        return result.Resource;
     }
 
     public ValueTask<MeshAsset> LoadMeshAsync(string asset, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        return _meshes.LoadAsync(asset, cancellationToken);
+        ValueTask<ResourceLoadResult<MeshAsset>> loadTask = _meshes.LoadTrackedAsync(asset, cancellationToken);
+        if (!loadTask.IsCompletedSuccessfully)
+        {
+            return CompleteLoadMeshAsync(loadTask);
+        }
+
+        ResourceLoadResult<MeshAsset> result = loadTask.GetAwaiter().GetResult();
+        if (result.Inserted)
+        {
+            IncrementRevision();
+        }
+
+        return new ValueTask<MeshAsset>(result.Resource);
     }
 
     public MeshAsset GetMesh(string asset)
@@ -47,19 +72,43 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
     public bool UnloadMesh(string asset)
     {
         ThrowIfDisposed();
-        return _meshes.Unload(asset);
+        bool unloaded = _meshes.Unload(asset);
+        if (unloaded)
+        {
+            IncrementRevision();
+        }
+
+        return unloaded;
     }
 
     public TextureAsset LoadTexture(string asset)
     {
         ThrowIfDisposed();
-        return _textures.Load(asset);
+        ResourceLoadResult<TextureAsset> result = _textures.LoadTracked(asset);
+        if (result.Inserted)
+        {
+            IncrementRevision();
+        }
+
+        return result.Resource;
     }
 
     public ValueTask<TextureAsset> LoadTextureAsync(string asset, CancellationToken cancellationToken = default)
     {
         ThrowIfDisposed();
-        return _textures.LoadAsync(asset, cancellationToken);
+        ValueTask<ResourceLoadResult<TextureAsset>> loadTask = _textures.LoadTrackedAsync(asset, cancellationToken);
+        if (!loadTask.IsCompletedSuccessfully)
+        {
+            return CompleteLoadTextureAsync(loadTask);
+        }
+
+        ResourceLoadResult<TextureAsset> result = loadTask.GetAwaiter().GetResult();
+        if (result.Inserted)
+        {
+            IncrementRevision();
+        }
+
+        return new ValueTask<TextureAsset>(result.Resource);
     }
 
     public TextureAsset GetTexture(string asset)
@@ -76,7 +125,25 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
     public bool UnloadTexture(string asset)
     {
         ThrowIfDisposed();
-        return _textures.Unload(asset);
+        bool unloaded = _textures.Unload(asset);
+        if (unloaded)
+        {
+            IncrementRevision();
+        }
+
+        return unloaded;
+    }
+
+    public VulkanShaderResource LoadVulkanShaders(ResourceFactory factory)
+    {
+        ThrowIfDisposed();
+        return _vulkanShaders.Load(factory);
+    }
+
+    public bool UnloadVulkanShaders()
+    {
+        ThrowIfDisposed();
+        return _vulkanShaders.Unload();
     }
 
     public SceneDefinition LoadScene(string path)
@@ -196,18 +263,24 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
         ThrowIfDisposed();
         SceneResourceScope scope = CreateSceneResourceScope(scene, scenePath, isDefaultScene);
         EnsureSceneScopeIsFree(scope.SceneId);
+        bool changed = false;
 
         foreach (string asset in scope.MeshAssets)
         {
-            _meshes.Load(asset);
+            changed |= _meshes.LoadTracked(asset).Inserted;
         }
 
         foreach (string asset in scope.TextureAssets)
         {
-            _textures.Load(asset);
+            changed |= _textures.LoadTracked(asset).Inserted;
         }
 
         RegisterSceneScope(scope);
+        if (changed)
+        {
+            IncrementRevision();
+        }
+
         return scope;
     }
 
@@ -221,24 +294,34 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
         SceneResourceScope scope = CreateSceneResourceScope(scene, scenePath, isDefaultScene);
         EnsureSceneScopeIsFree(scope.SceneId);
 
-        List<Task>? tasks = null;
+        List<Task<bool>>? tasks = null;
+        bool changed = false;
         foreach (string asset in scope.MeshAssets)
         {
-            CollectPendingTask(_meshes.LoadAsync(asset, cancellationToken), ref tasks);
+            CollectPendingLoad(_meshes.LoadTrackedAsync(asset, cancellationToken), ref changed, ref tasks);
         }
 
         foreach (string asset in scope.TextureAssets)
         {
-            CollectPendingTask(_textures.LoadAsync(asset, cancellationToken), ref tasks);
+            CollectPendingLoad(_textures.LoadTrackedAsync(asset, cancellationToken), ref changed, ref tasks);
         }
 
         if (tasks is not null)
         {
-            await Task.WhenAll(tasks).ConfigureAwait(false);
+            bool[] results = await Task.WhenAll(tasks).ConfigureAwait(false);
+            foreach (bool inserted in results)
+            {
+                changed |= inserted;
+            }
         }
 
         ThrowIfDisposed();
         RegisterSceneScope(scope);
+        if (changed)
+        {
+            IncrementRevision();
+        }
+
         return scope;
     }
 
@@ -304,7 +387,8 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
             _meshes.Count,
             _textures.Count,
             _textures.Bytes,
-            _scenes.Count);
+            _scenes.Count,
+            _vulkanShaders.Count);
     }
 
     public void Clear()
@@ -320,6 +404,8 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
         _meshes.Clear();
         _textures.Clear();
         _scenes.Clear();
+        _vulkanShaders.Clear();
+        IncrementRevision();
     }
 
     public void DisposeInject()
@@ -345,6 +431,7 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
         _meshes.Clear();
         _textures.Clear();
         _scenes.Clear();
+        _vulkanShaders.Clear();
         GC.SuppressFinalize(this);
     }
 
@@ -359,16 +446,47 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
         return new SceneResourceScope(scene, scenePath, isDefaultScene, meshAssets, textureAssets);
     }
 
-    private static void CollectPendingTask<T>(ValueTask<T> valueTask, ref List<Task>? tasks)
+    private static void CollectPendingLoad<T>(
+        ValueTask<ResourceLoadResult<T>> valueTask,
+        ref bool changed,
+        ref List<Task<bool>>? tasks)
     {
         if (valueTask.IsCompletedSuccessfully)
         {
-            valueTask.GetAwaiter().GetResult();
+            changed |= valueTask.GetAwaiter().GetResult().Inserted;
             return;
         }
 
-        tasks ??= new List<Task>();
-        tasks.Add(valueTask.AsTask());
+        tasks ??= new List<Task<bool>>();
+        tasks.Add(CompletePendingLoadAsync(valueTask));
+    }
+
+    private async ValueTask<MeshAsset> CompleteLoadMeshAsync(ValueTask<ResourceLoadResult<MeshAsset>> loadTask)
+    {
+        ResourceLoadResult<MeshAsset> result = await loadTask.ConfigureAwait(false);
+        if (result.Inserted)
+        {
+            IncrementRevision();
+        }
+
+        return result.Resource;
+    }
+
+    private async ValueTask<TextureAsset> CompleteLoadTextureAsync(ValueTask<ResourceLoadResult<TextureAsset>> loadTask)
+    {
+        ResourceLoadResult<TextureAsset> result = await loadTask.ConfigureAwait(false);
+        if (result.Inserted)
+        {
+            IncrementRevision();
+        }
+
+        return result.Resource;
+    }
+
+    private static async Task<bool> CompletePendingLoadAsync<T>(ValueTask<ResourceLoadResult<T>> loadTask)
+    {
+        ResourceLoadResult<T> result = await loadTask.ConfigureAwait(false);
+        return result.Inserted;
     }
 
     private static void CollectSceneResources(
@@ -428,6 +546,7 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
     {
         List<string> meshesToUnload;
         List<string> texturesToUnload;
+        bool changed = false;
         lock (_sync)
         {
             meshesToUnload = RemoveReferences(_meshSceneReferences, scope.MeshAssets);
@@ -436,12 +555,17 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
 
         foreach (string asset in meshesToUnload)
         {
-            _meshes.Unload(asset);
+            changed |= _meshes.Unload(asset);
         }
 
         foreach (string asset in texturesToUnload)
         {
-            _textures.Unload(asset);
+            changed |= _textures.Unload(asset);
+        }
+
+        if (changed)
+        {
+            IncrementRevision();
         }
 
         if (scope.ScenePath is not null)
@@ -495,5 +619,10 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
         {
             throw new ObjectDisposedException(nameof(ResourceManager));
         }
+    }
+
+    private void IncrementRevision()
+    {
+        Interlocked.Increment(ref _revision);
     }
 }

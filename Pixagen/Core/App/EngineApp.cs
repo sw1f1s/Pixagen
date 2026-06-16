@@ -97,9 +97,9 @@ public sealed class EngineApp : IDisposable
         catch (Exception exception)
         {
             debug.Exception(exception, "EngineApp.CreateDefault failed.");
+            DisposeCreateFailurePart(debug, nameof(renderBackend), () => renderBackend?.Dispose());
             DisposeCreateFailurePart(debug, nameof(systems), () => systems?.Dispose());
             DisposeCreateFailurePart(debug, nameof(world), () => world?.Dispose());
-            DisposeCreateFailurePart(debug, nameof(renderBackend), () => renderBackend?.Dispose());
             debug.Dispose();
             throw;
         }
@@ -219,9 +219,9 @@ public sealed class EngineApp : IDisposable
         }
 
         _disposed = true;
+        DisposeRuntimePart(nameof(_renderBackend), _renderBackend.Dispose);
         DisposeRuntimePart(nameof(_systems), _systems.Dispose);
         DisposeRuntimePart(nameof(_world), _world.Dispose);
-        DisposeRuntimePart(nameof(_renderBackend), _renderBackend.Dispose);
         _debug.Dispose();
         GC.SuppressFinalize(this);
     }

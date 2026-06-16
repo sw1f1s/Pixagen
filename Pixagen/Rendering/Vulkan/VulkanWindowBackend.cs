@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
+using Pixagen.Ecs.DI;
 using Pixagen.Core.App;
 using Pixagen.Core.Input;
 using Pixagen.Core.Performance;
@@ -8,10 +9,11 @@ using Pixagen.Core.Timing;
 using Pixagen.Game.Features.RenderFeature;
 using Pixagen.Game.Features.RenderFeature.Raycasting;
 using Pixagen.Game.Features.RenderFeature.Textures;
+using Pixagen.Game.Features.ResourceFeature.Runtime;
+using Pixagen.Game.Features.ResourceFeature.Shaders;
 using Pixagen.Rendering;
 using Veldrid;
 using Veldrid.Sdl2;
-using Veldrid.SPIRV;
 using Veldrid.StartupUtilities;
 
 namespace Pixagen.Rendering.Vulkan;
@@ -34,9 +36,9 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
     private ResourceLayout? _compositeResourceLayout;
     private ResourceSet? _compositeResourceSet;
     private Pipeline? _compositePipeline;
-    private RgbaByte[] _scenePixels = [];
     private RgbaByte[] _overlayPixels = [];
-    private readonly VulkanShaderLibrary _shaderLibrary = new();
+    private readonly CustomInject<ResourceManager> _resources = default;
+    private readonly RgbaByte[] _fallbackScenePixel = [new(0, 0, 0, 255)];
     private RenderBackendOptions _options = null!;
     private int _sceneTextureWidth;
     private int _sceneTextureHeight;
@@ -44,6 +46,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
     private int _overlayTextureHeight;
     private bool _closeRequested;
     private bool _hasComputeSceneFrame;
+    private bool _sceneTextureHasFallback;
 
     private ResourceLayout? _raycastComputeLayout;
     private ResourceSet? _raycastComputeSet;
@@ -61,6 +64,8 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
     private GpuTriangle[] _gpuShadowTriangles = [GpuTriangle.Empty];
     private GpuTextureInfo[] _gpuTextureInfos = [GpuTextureInfo.Empty];
     private Vector4[] _gpuTexturePixels = [Vector4.One];
+    private readonly Dictionary<TextureAsset, int> _raycastTextureIndices = new();
+    private readonly List<TextureAsset> _raycastTextures = new();
     private long _currentGpuFrameStartTicks;
     private bool _hasCurrentGpuFrame;
     private int _currentRenderCalls;
@@ -173,22 +178,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         }
         else
         {
-            EnsureSceneTexture(
-                overlayWidth,
-                overlayHeight);
-            RasterizeScene(frameBuffer);
-
-            graphicsDevice.UpdateTexture(
-                _sceneTexture!,
-                _scenePixels,
-                0,
-                0,
-                0,
-                (uint)_sceneTextureWidth,
-                (uint)_sceneTextureHeight,
-                1,
-                0,
-                0);
+            EnsureFallbackSceneTexture();
             UpdateOverlayTexture(overlayWidth, overlayHeight);
         }
 
@@ -242,6 +232,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 
         graphicsDevice.SubmitCommands(commandList);
         _hasComputeSceneFrame = true;
+        _sceneTextureHasFallback = false;
         return true;
     }
 
@@ -265,11 +256,9 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 
     private void WarmUpShaders()
     {
-        GraphicsDevice graphicsDevice = RequireGraphicsDevice();
-        _shaderLibrary.Load(graphicsDevice.ResourceFactory);
         EnsureCompositePipeline();
         EnsureRaycastComputePipeline();
-        EnsureSceneTexture(1, 1);
+        EnsureFallbackSceneTexture();
         EnsureTransparentOverlayTexture();
         EnsureCompositeResourceSet();
         EnsureRaycastComputeResourceSet();
@@ -345,7 +334,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         _compositeResourceLayout?.Dispose();
         _compositeResourceLayout = null;
         UnloadRaycastComputeBuffers();
-        _shaderLibrary.Unload();
+        UnloadVulkanShaders();
     }
 
     private void UnloadRaycastComputeBuffers()
@@ -381,7 +370,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 
         GraphicsDevice graphicsDevice = RequireGraphicsDevice();
         ResourceFactory factory = graphicsDevice.ResourceFactory;
-        _shaderLibrary.Load(factory);
+        VulkanShaderResource shaders = LoadVulkanShaders(factory);
 
         _compositeResourceLayout = factory.CreateResourceLayout(new ResourceLayoutDescription(
             new ResourceLayoutElementDescription("SceneTexture", ResourceKind.TextureReadOnly, ShaderStages.Fragment),
@@ -394,7 +383,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
             DepthStencilStateDescription.Disabled,
             RasterizerStateDescription.CullNone,
             PrimitiveTopology.TriangleList,
-            new ShaderSetDescription([], _shaderLibrary.CompositeShaders),
+            new ShaderSetDescription([], shaders.CompositeShaders),
             [_compositeResourceLayout],
             graphicsDevice.SwapchainFramebuffer.OutputDescription,
             ResourceBindingModel.Improved);
@@ -423,7 +412,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 
         _sceneTextureWidth = width;
         _sceneTextureHeight = height;
-        _scenePixels = new RgbaByte[width * height];
+        _sceneTextureHasFallback = false;
         _sceneTexture = factory.CreateTexture(TextureDescription.Texture2D(
             (uint)width,
             (uint)height,
@@ -432,6 +421,18 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
             PixelFormat.R8_G8_B8_A8_UNorm,
             TextureUsage.Sampled | TextureUsage.Storage));
         _sceneTextureView = factory.CreateTextureView(_sceneTexture);
+    }
+
+    private void EnsureFallbackSceneTexture()
+    {
+        EnsureSceneTexture(1, 1);
+        if (_sceneTextureHasFallback)
+        {
+            return;
+        }
+
+        RequireGraphicsDevice().UpdateTexture(_sceneTexture!, _fallbackScenePixel, 0, 0, 0, 1, 1, 1, 0, 0);
+        _sceneTextureHasFallback = true;
     }
 
     private void EnsureOverlayTexture(int width, int height)
@@ -487,31 +488,6 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
             graphicsDevice.PointSampler));
     }
 
-    private void RasterizeScene(FrameBuffer frameBuffer)
-    {
-        ReadOnlySpan<FrameCell> cells = frameBuffer.Cells;
-        int cellSize = _options.CellPixelSize;
-        int frameWidth = frameBuffer.Width;
-        int frameHeight = frameBuffer.Height;
-
-        for (int cellY = 0; cellY < frameHeight; cellY++)
-        {
-            for (int cellX = 0; cellX < frameWidth; cellX++)
-            {
-                FrameCell cell = cells[cellY * frameWidth + cellX];
-                DrawCell(
-                    _scenePixels,
-                    _sceneTextureWidth,
-                    _sceneTextureHeight,
-                    cellX,
-                    cellY,
-                    cell,
-                    cellSize,
-                    includeTransparent: false);
-            }
-        }
-    }
-
     private void UpdateOverlayTexture(int width, int height)
     {
         EnsureOverlayTexture(width, height);
@@ -551,57 +527,6 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         }
     }
 
-    private static void DrawCell(
-        RgbaByte[] pixels,
-        int textureWidth,
-        int textureHeight,
-        int cellX,
-        int cellY,
-        FrameCell cell,
-        int cellSize,
-        bool includeTransparent,
-        int offsetX = 0,
-        int offsetY = 0)
-    {
-        RgbaByte foreground = ToRgba(cell.Foreground, cell.ForegroundAlpha);
-        RgbaByte background = ToRgba(cell.Background, cell.BackgroundAlpha);
-        int drawSize = cell.FontSize > 0 ? cell.FontSize : cellSize;
-        int startX = cellX * cellSize + offsetX;
-        int startY = cellY * cellSize + offsetY;
-        bool drawGlyph = cell.Glyph != ' ';
-        bool clipped = offsetX != 0 || offsetY != 0 || drawSize != cellSize;
-
-        for (int localY = 0; localY < drawSize; localY++)
-        {
-            int pixelY = startY + localY;
-            if (clipped && (uint)pixelY >= (uint)textureHeight)
-            {
-                continue;
-            }
-
-            int fontY = Math.Min(7, localY * 8 / drawSize);
-            byte glyphRow = drawGlyph ? BitmapFont8x8.GetRow(cell.Glyph, fontY) : (byte)0;
-            int rowOffset = pixelY * textureWidth;
-
-            for (int localX = 0; localX < drawSize; localX++)
-            {
-                int pixelX = startX + localX;
-                if (clipped && (uint)pixelX >= (uint)textureWidth)
-                {
-                    continue;
-                }
-
-                int fontX = Math.Min(7, localX * 8 / drawSize);
-                bool glyphPixel = drawGlyph && (glyphRow & (0x80 >> fontX)) != 0;
-                RgbaByte color = glyphPixel ? foreground : background;
-                if (includeTransparent || color.A > 0)
-                {
-                    pixels[rowOffset + pixelX] = color;
-                }
-            }
-        }
-    }
-
     private static void ApplyWindowMode(Sdl2Window window, RenderBackendOptions options)
     {
         if (!options.Fullscreen)
@@ -622,7 +547,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 
         GraphicsDevice graphicsDevice = RequireGraphicsDevice();
         ResourceFactory factory = graphicsDevice.ResourceFactory;
-        _shaderLibrary.Load(factory);
+        VulkanShaderResource shaders = LoadVulkanShaders(factory);
 
         _raycastComputeLayout = factory.CreateResourceLayout(new ResourceLayoutDescription(
             new ResourceLayoutElementDescription("OutputTexture", ResourceKind.TextureReadWrite, ShaderStages.Compute),
@@ -633,7 +558,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
             new ResourceLayoutElementDescription("TexturePixels", ResourceKind.StructuredBufferReadOnly, ShaderStages.Compute)));
 
         ComputePipelineDescription pipelineDescription = new(
-            _shaderLibrary.RaycastShader ?? throw new InvalidOperationException("Raycast compute shader is not loaded."),
+            shaders.RaycastShader,
             _raycastComputeLayout,
             8,
             8,
@@ -656,31 +581,39 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         GpuRaycastParams parameters = GpuRaycastParams.From(request);
         graphicsDevice.UpdateBuffer(_raycastParamsBuffer!, 0, ref parameters);
 
-        var textureIndices = new Dictionary<TextureAsset, int>();
-        var textures = new List<TextureAsset>();
-        int triangleCount = FillTriangles(
-            ref _gpuTriangles,
-            request.StaticPrimitives.Triangles,
-            request.DynamicPrimitives.Triangles,
-            textureIndices,
-            textures);
-        int shadowTriangleCount = FillTriangles(
-            ref _gpuShadowTriangles,
-            request.StaticPrimitives.ShadowTriangles,
-            request.DynamicPrimitives.ShadowTriangles,
-            textureIndices,
-            textures);
-        int textureInfoCount = FillTextures(ref _gpuTextureInfos, ref _gpuTexturePixels, textures);
+        _raycastTextureIndices.Clear();
+        _raycastTextures.Clear();
+        try
+        {
+            int triangleCount = FillTriangles(
+                ref _gpuTriangles,
+                request.StaticPrimitives.Triangles,
+                request.DynamicPrimitives.Triangles,
+                _raycastTextureIndices,
+                _raycastTextures);
+            int shadowTriangleCount = FillTriangles(
+                ref _gpuShadowTriangles,
+                request.StaticPrimitives.ShadowTriangles,
+                request.DynamicPrimitives.ShadowTriangles,
+                _raycastTextureIndices,
+                _raycastTextures);
+            int textureInfoCount = FillTextures(ref _gpuTextureInfos, ref _gpuTexturePixels, _raycastTextures);
 
-        EnsureStructuredBuffer(ref _triangleBuffer, ref _triangleCapacity, Math.Max(1, triangleCount), Marshal.SizeOf<GpuTriangle>());
-        EnsureStructuredBuffer(ref _shadowTriangleBuffer, ref _shadowTriangleCapacity, Math.Max(1, shadowTriangleCount), Marshal.SizeOf<GpuTriangle>());
-        EnsureStructuredBuffer(ref _textureInfoBuffer, ref _textureInfoCapacity, Math.Max(1, textureInfoCount), Marshal.SizeOf<GpuTextureInfo>());
-        EnsureStructuredBuffer(ref _texturePixelBuffer, ref _texturePixelCapacity, Math.Max(1, _gpuTexturePixels.Length), Marshal.SizeOf<Vector4>());
+            EnsureStructuredBuffer(ref _triangleBuffer, ref _triangleCapacity, Math.Max(1, triangleCount), Marshal.SizeOf<GpuTriangle>());
+            EnsureStructuredBuffer(ref _shadowTriangleBuffer, ref _shadowTriangleCapacity, Math.Max(1, shadowTriangleCount), Marshal.SizeOf<GpuTriangle>());
+            EnsureStructuredBuffer(ref _textureInfoBuffer, ref _textureInfoCapacity, Math.Max(1, textureInfoCount), Marshal.SizeOf<GpuTextureInfo>());
+            EnsureStructuredBuffer(ref _texturePixelBuffer, ref _texturePixelCapacity, Math.Max(1, _gpuTexturePixels.Length), Marshal.SizeOf<Vector4>());
 
-        graphicsDevice.UpdateBuffer(_triangleBuffer!, 0, _gpuTriangles.AsSpan(0, Math.Max(1, triangleCount)));
-        graphicsDevice.UpdateBuffer(_shadowTriangleBuffer!, 0, _gpuShadowTriangles.AsSpan(0, Math.Max(1, shadowTriangleCount)));
-        graphicsDevice.UpdateBuffer(_textureInfoBuffer!, 0, _gpuTextureInfos.AsSpan(0, Math.Max(1, textureInfoCount)));
-        graphicsDevice.UpdateBuffer(_texturePixelBuffer!, 0, _gpuTexturePixels.AsSpan(0, Math.Max(1, _gpuTexturePixels.Length)));
+            graphicsDevice.UpdateBuffer(_triangleBuffer!, 0, _gpuTriangles.AsSpan(0, Math.Max(1, triangleCount)));
+            graphicsDevice.UpdateBuffer(_shadowTriangleBuffer!, 0, _gpuShadowTriangles.AsSpan(0, Math.Max(1, shadowTriangleCount)));
+            graphicsDevice.UpdateBuffer(_textureInfoBuffer!, 0, _gpuTextureInfos.AsSpan(0, Math.Max(1, textureInfoCount)));
+            graphicsDevice.UpdateBuffer(_texturePixelBuffer!, 0, _gpuTexturePixels.AsSpan(0, Math.Max(1, _gpuTexturePixels.Length)));
+        }
+        finally
+        {
+            _raycastTextureIndices.Clear();
+            _raycastTextures.Clear();
+        }
     }
 
     private void EnsureRaycastComputeResourceSet()
@@ -848,19 +781,29 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         return _commandList ?? throw new InvalidOperationException("Vulkan command list is not initialized.");
     }
 
-    private static RgbaByte ToRgba(PixelColor color)
+    private VulkanShaderResource LoadVulkanShaders(ResourceFactory factory)
     {
-        return new RgbaByte(color.R, color.G, color.B, 255);
+        ResourceManager resources = _resources.Value ??
+            throw new InvalidOperationException($"{nameof(VulkanWindowBackend)} requires {nameof(ResourceManager)}.");
+        return resources.LoadVulkanShaders(factory);
     }
 
-    private static RgbaByte ToRgba(PixelColor color, byte alpha)
+    private void UnloadVulkanShaders()
     {
-        return new RgbaByte(color.R, color.G, color.B, alpha);
-    }
+        ResourceManager? resources = _resources.Value;
+        if (resources is null)
+        {
+            return;
+        }
 
-    private static Vector4 ToVector4(PixelColor color)
-    {
-        return ToVector4(color, 1f);
+        try
+        {
+            resources.UnloadVulkanShaders();
+        }
+        catch (ObjectDisposedException)
+        {
+            // Startup failure cleanup can dispose ResourceManager before the backend reaches this path.
+        }
     }
 
     private static Vector4 ToVector4(PixelColor color, float alpha)
