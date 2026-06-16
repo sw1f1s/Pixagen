@@ -1,128 +1,250 @@
 using Pixagen.Ecs.DI;
+using Pixagen.Ecs.Collections;
 
 namespace Pixagen.Game.Features.SharedFeature.Systems;
 
-public sealed class HierarchyTransformSystem : IUpdateSystem
+public sealed class HierarchyTransformSystem : IInitSystem, IUpdateSystem
 {
-    private readonly FilterInject<Include<Transform, Children>, Exclude<DisabledInHierarchy>> _roots = default;
+    private readonly FilterInject<Include<Transform, HierarchyDirty>, Exclude<DisabledInHierarchy>> _hierarchyDirtyNodes = default;
+    private readonly FilterInject<Include<Transform, TransformDirty>, Exclude<DisabledInHierarchy>> _transformDirtyNodes = default;
+    private readonly FilterInject<Include<HierarchyDirtyQueue>> _dirtyQueues = default;
     private readonly WorldInject _world = default;
     private readonly ComponentInject<Transform> _transforms = default;
     private readonly ComponentInject<Children> _children = default;
+    private readonly ComponentInject<HasChildren> _hasChildren = default;
     private readonly ComponentInject<Parent> _parents = default;
     private readonly ComponentInject<LocalTransform> _localTransforms = default;
+    private readonly ComponentInject<HierarchyDirty> _hierarchyDirty = default;
+    private readonly ComponentInject<TransformDirty> _transformDirty = default;
     private readonly ComponentInject<DisabledInHierarchy> _disabledInHierarchy = default;
+    private readonly ComponentInject<HierarchyDirtyQueue> _dirtyQueueComponents = default;
+    private Entity _dirtyQueueEntity;
+
+    public void Init()
+    {
+        _ = GetDirtyQueue();
+    }
 
     public void Update()
     {
-        _roots.Value.ForEachChunkSequential(new ChunkJob(
-            _world,
-            _transforms,
-            _children,
-            _parents,
-            _localTransforms,
-            _disabledInHierarchy));
+        ref HierarchyDirtyQueue queue = ref GetDirtyQueue();
+        PooledList<Entity> transformDirtyEntities = queue.TransformDirtyEntities;
+        for (int i = 0; i < transformDirtyEntities.Count; i++)
+        {
+            Entity entity = transformDirtyEntities[i];
+            if (!HasDirtyAncestor(entity))
+            {
+                ProcessTransformDirty(entity);
+            }
+        }
+
+        transformDirtyEntities.Clear();
+
+        foreach (Entity entity in _hierarchyDirtyNodes.Value)
+        {
+            if (!HasDirtyAncestor(entity))
+            {
+                ProcessHierarchyDirty(entity);
+            }
+        }
+
+        foreach (Entity entity in _transformDirtyNodes.Value)
+        {
+            if (!HasDirtyAncestor(entity))
+            {
+                ProcessTransformDirty(entity);
+            }
+        }
     }
 
-    private readonly struct ChunkJob : IFilterChunkProcessor
+    private ref HierarchyDirtyQueue GetDirtyQueue()
     {
-        private readonly WorldInject _world;
-        private readonly ComponentInject<Transform> _transforms;
-        private readonly ComponentInject<Children> _children;
-        private readonly ComponentInject<Parent> _parents;
-        private readonly ComponentInject<LocalTransform> _localTransforms;
-        private readonly ComponentInject<DisabledInHierarchy> _disabledInHierarchy;
-
-        public ChunkJob(
-            WorldInject world,
-            ComponentInject<Transform> transforms,
-            ComponentInject<Children> children,
-            ComponentInject<Parent> parents,
-            ComponentInject<LocalTransform> localTransforms,
-            ComponentInject<DisabledInHierarchy> disabledInHierarchy)
+        if (_dirtyQueueEntity != Entity.Empty &&
+            _world.IsAlive(_dirtyQueueEntity) &&
+            _dirtyQueueComponents.Has(_dirtyQueueEntity))
         {
-            _world = world;
-            _transforms = transforms;
-            _children = children;
-            _parents = parents;
-            _localTransforms = localTransforms;
-            _disabledInHierarchy = disabledInHierarchy;
+            return ref _dirtyQueueComponents.Get(_dirtyQueueEntity);
         }
 
-        public void Execute(FilterChunk chunk)
+        foreach (Entity entity in _dirtyQueues.Value)
         {
-            foreach (Entity root in chunk.Entities)
+            _dirtyQueueEntity = entity;
+            return ref _dirtyQueueComponents.Get(entity);
+        }
+
+        throw new InvalidOperationException($"{nameof(HierarchyDirtyQueue)} was not created. Add HierarchyDirtyQueueInitSystem before hierarchy systems.");
+    }
+
+    private void ProcessHierarchyDirty(Entity entity)
+    {
+        if (entity == Entity.Empty || !_world.IsAlive(entity))
+        {
+            return;
+        }
+
+        if (_disabledInHierarchy.Has(entity))
+        {
+            return;
+        }
+
+        if (!_transforms.Has(entity))
+        {
+            ClearDirty(entity);
+            return;
+        }
+
+        if (_parents.Has(entity) && _localTransforms.Has(entity))
+        {
+            ref Parent parent = ref _parents.Get(entity);
+            Entity parentEntity = parent.Entity;
+            if (parentEntity != Entity.Empty)
             {
-                if (HasAliveParent(root))
+                if (!_world.IsAlive(parentEntity) || !_transforms.Has(parentEntity))
                 {
-                    continue;
+                    ClearDirty(entity);
+                    return;
                 }
 
-                UpdateChildren(root);
+                if (_disabledInHierarchy.Has(parentEntity))
+                {
+                    return;
+                }
+
+                ApplyLocalTransform(_transforms.Get(parentEntity), entity);
             }
         }
 
-        private void UpdateChildren(Entity parentEntity)
+        ClearDirty(entity);
+        UpdateChildren(entity);
+    }
+
+    private void ProcessTransformDirty(Entity entity)
+    {
+        if (!CanProcess(entity))
         {
-            if (parentEntity == Entity.Empty ||
-                !_world.IsAlive(parentEntity) ||
-                _disabledInHierarchy.Has(parentEntity) ||
-                !_transforms.Has(parentEntity) ||
-                !_children.Has(parentEntity))
-            {
-                return;
-            }
-
-            ref Transform parentTransform = ref _transforms.Get(parentEntity);
-            ref Children children = ref _children.Get(parentEntity);
-
-            foreach (Entity child in children.Entities)
-            {
-                if (!_world.IsAlive(child) || _disabledInHierarchy.Has(child))
-                {
-                    continue;
-                }
-
-                if (_transforms.Has(child) && _parents.Has(child) && _localTransforms.Has(child))
-                {
-                    ref Parent parent = ref _parents.Get(child);
-                    if (parent.Entity == parentEntity)
-                    {
-                        ApplyLocalTransform(parentTransform, child);
-                    }
-                }
-
-                UpdateChildren(child);
-            }
+            return;
         }
 
-        private void ApplyLocalTransform(in Transform parentTransform, Entity child)
+        ClearDirty(entity);
+        if (_hasChildren.Has(entity))
         {
-            ref LocalTransform localTransform = ref _localTransforms.Get(child);
-            ref Transform transform = ref _transforms.Get(child);
-            Quaternion parentRotation = parentTransform.Rotation.MagnitudeSquared <= Fix.Epsilon
-                ? Quaternion.Identity
-                : parentTransform.Rotation.Normalized;
-            Quaternion localRotation = localTransform.Rotation.MagnitudeSquared <= Fix.Epsilon
-                ? Quaternion.Identity
-                : localTransform.Rotation.Normalized;
-
-            transform.Position = parentTransform.Position + parentRotation.Rotate(localTransform.Position);
-            transform.Rotation = (parentRotation * localRotation).Normalized;
-            transform.Scale = new Vector3(
-                parentTransform.Scale.X * localTransform.Scale.X,
-                parentTransform.Scale.Y * localTransform.Scale.Y,
-                parentTransform.Scale.Z * localTransform.Scale.Z);
+            UpdateChildren(entity);
         }
+    }
 
-        private bool HasAliveParent(Entity entity)
+    private bool HasDirtyAncestor(Entity entity)
+    {
+        while (_parents.Has(entity))
         {
-            if (!_parents.Has(entity))
+            ref Parent parent = ref _parents.Get(entity);
+            entity = parent.Entity;
+            if (entity == Entity.Empty || !_world.IsAlive(entity))
             {
                 return false;
             }
 
-            ref Parent parent = ref _parents.Get(entity);
-            return _world.IsAlive(parent.Entity);
+            if (_disabledInHierarchy.Has(entity))
+            {
+                return true;
+            }
+
+            if (_hierarchyDirty.Has(entity) || _transformDirty.Has(entity))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private bool CanProcess(Entity entity)
+    {
+        return entity != Entity.Empty &&
+               _world.IsAlive(entity) &&
+               !_disabledInHierarchy.Has(entity) &&
+               _transforms.Has(entity);
+    }
+
+    private void UpdateChildren(Entity parentEntity)
+    {
+        if (!_children.Has(parentEntity))
+        {
+            return;
+        }
+
+        ref Transform parentTransform = ref _transforms.Get(parentEntity);
+        ref Children children = ref _children.Get(parentEntity);
+
+        foreach (Entity child in children.Entities)
+        {
+            if (child == Entity.Empty || !_world.IsAlive(child))
+            {
+                continue;
+            }
+
+            if (_disabledInHierarchy.Has(child))
+            {
+                MarkHierarchyDirty(child);
+                continue;
+            }
+
+            if (!CanProcess(child))
+            {
+                continue;
+            }
+
+            bool keepWorldTransform = _transformDirty.Has(child) && !_hierarchyDirty.Has(child);
+            if (!keepWorldTransform && _parents.Has(child) && _localTransforms.Has(child))
+            {
+                ref Parent parent = ref _parents.Get(child);
+                if (parent.Entity == parentEntity)
+                {
+                    ApplyLocalTransform(parentTransform, child);
+                }
+            }
+
+            ClearDirty(child);
+            UpdateChildren(child);
+        }
+    }
+
+    private void ApplyLocalTransform(in Transform parentTransform, Entity child)
+    {
+        ref LocalTransform localTransform = ref _localTransforms.Get(child);
+        ref Transform transform = ref _transforms.Get(child);
+        Quaternion parentRotation = parentTransform.Rotation.MagnitudeSquared <= Fix.Epsilon
+            ? Quaternion.Identity
+            : parentTransform.Rotation.Normalized;
+        Quaternion localRotation = localTransform.Rotation.MagnitudeSquared <= Fix.Epsilon
+            ? Quaternion.Identity
+            : localTransform.Rotation.Normalized;
+
+        transform.Position = parentTransform.Position + parentRotation.Rotate(localTransform.Position);
+        transform.Rotation = (parentRotation * localRotation).Normalized;
+        transform.Scale = new Vector3(
+            parentTransform.Scale.X * localTransform.Scale.X,
+            parentTransform.Scale.Y * localTransform.Scale.Y,
+            parentTransform.Scale.Z * localTransform.Scale.Z);
+    }
+
+    private void ClearDirty(Entity entity)
+    {
+        if (_hierarchyDirty.Has(entity))
+        {
+            _hierarchyDirty.Remove(entity);
+        }
+
+        if (_transformDirty.Has(entity))
+        {
+            _transformDirty.Remove(entity);
+        }
+    }
+
+    private void MarkHierarchyDirty(Entity entity)
+    {
+        if (!_hierarchyDirty.Has(entity))
+        {
+            _hierarchyDirty.Add(entity, new HierarchyDirty());
         }
     }
 }

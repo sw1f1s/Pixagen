@@ -31,8 +31,8 @@ public sealed class PerformanceStatsTests
         stats.RecordCpuFrame(-1);
         stats.RecordGpuFrame(-1);
         stats.RecordRenderScene(new RenderPerformanceReport(-1, -2, -3, -4));
-        stats.RecordBackendFrame(new BackendPerformanceReport(-5, -6));
-        stats.RecordMemory(new MemoryPerformanceReport(-7, -8, -9, -10));
+        stats.RecordBackendFrame(new BackendPerformanceReport(-5, -6, -7));
+        stats.RecordMemory(new MemoryPerformanceReport(-8, -9, -10, -11));
 
         PerformanceSnapshot snapshot = stats.Snapshot;
         Assert.Equal(0, snapshot.CpuFrameMilliseconds);
@@ -45,6 +45,7 @@ public sealed class PerformanceStatsTests
         Assert.Equal(0, snapshot.TextureCount);
         Assert.Equal(0, snapshot.TextureBytes);
         Assert.Equal(0, snapshot.DrawCalls);
+        Assert.Equal(0, snapshot.Passes);
         Assert.Equal(0, snapshot.VramBytes);
         Assert.Equal(0, snapshot.ManagedMemoryBytes);
         Assert.Equal(0, snapshot.WorkingSetBytes);
@@ -60,7 +61,7 @@ public sealed class PerformanceStatsTests
         stats.RecordFrame(1.25);
         stats.RecordGpuFrame(2.5);
         stats.RecordRenderScene(new RenderPerformanceReport(10, 20, 3, 400));
-        stats.RecordBackendFrame(new BackendPerformanceReport(4, 512));
+        stats.RecordBackendFrame(new BackendPerformanceReport(4, 2, 512));
         stats.RecordMemory(new MemoryPerformanceReport(1024, 2048, 4096, 8192));
 
         PerformanceSnapshot snapshot = stats.Snapshot;
@@ -74,6 +75,7 @@ public sealed class PerformanceStatsTests
         Assert.Equal(3, snapshot.TextureCount);
         Assert.Equal(400, snapshot.TextureBytes);
         Assert.Equal(4, snapshot.DrawCalls);
+        Assert.Equal(2, snapshot.Passes);
         Assert.Equal(512, snapshot.VramBytes);
         Assert.Equal(1024, snapshot.ManagedMemoryBytes);
         Assert.Equal(2048, snapshot.WorkingSetBytes);

@@ -103,7 +103,7 @@ namespace Pixagen.Ecs.Runtime
 
                 componentStorage.CopyComponent(entity, copyEntity);
                 copyEntityData.AddComponent();
-                _filterMap.AddDirtyEntity(componentStorage.Id, copyEntity.Id);
+                _filterMap.AddDirtyEntity(componentStorage.Id, copyEntity.Id, FilterDirtyOperation.Add);
             }
 #if DEBUG
             OnCopyEntity?.Invoke(this, copyEntity);
@@ -141,7 +141,7 @@ namespace Pixagen.Ecs.Runtime
             {
                 if (componentStorage.RemoveComponent(entity))
                 {
-                    _filterMap.AddDirtyEntity(componentStorage.Id, entity.Id);
+                    _filterMap.AddDirtyEntity(componentStorage.Id, entity.Id, FilterDirtyOperation.Remove);
                 }
             }
             _entityRegistry.Return(entityData);
@@ -173,7 +173,7 @@ namespace Pixagen.Ecs.Runtime
         {
             storage.AddComponent(entity, in component);
             _entityRegistry.Get(entity).AddComponent();
-            _filterMap.AddDirtyEntity(storage.Id, entity.Id);
+            _filterMap.AddDirtyEntity(storage.Id, entity.Id, FilterDirtyOperation.Add);
 #if DEBUG
             OnAddComponent?.Invoke(this, entity, typeof(T));
 #endif
@@ -192,7 +192,7 @@ namespace Pixagen.Ecs.Runtime
             if (!hadComponent)
             {
                 _entityRegistry.Get(entity).AddComponent();
-                _filterMap.AddDirtyEntity(storage.Id, entity.Id);
+                _filterMap.AddDirtyEntity(storage.Id, entity.Id, FilterDirtyOperation.Add);
             }
 #if DEBUG
             OnAddComponent?.Invoke(this, entity, typeof(T));
@@ -211,7 +211,7 @@ namespace Pixagen.Ecs.Runtime
         {
             ref T component = ref storage.SetComponent(entity);
             _entityRegistry.Get(entity).AddComponent();
-            _filterMap.AddDirtyEntity(storage.Id, entity.Id);
+            _filterMap.AddDirtyEntity(storage.Id, entity.Id, FilterDirtyOperation.Add);
 #if DEBUG
             OnAddComponent?.Invoke(this, entity, typeof(T));
 #endif
@@ -258,7 +258,7 @@ namespace Pixagen.Ecs.Runtime
             {
                 ref var entityData = ref _entityRegistry.Get(entity);
                 entityData.RemoveComponent();
-                _filterMap.AddDirtyEntity(storage.Id, entity.Id);
+                _filterMap.AddDirtyEntity(storage.Id, entity.Id, FilterDirtyOperation.Remove);
                 if (entityData.IsEmpty)
                 {
                     _entityRegistry.Return(entityData);

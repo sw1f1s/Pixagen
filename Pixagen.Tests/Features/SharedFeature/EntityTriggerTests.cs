@@ -140,6 +140,7 @@ public sealed class EntityTriggerTests
         var systems = context.BuildSystems(
             new EntityDisableTriggerSystem(),
             new EntityEnableTriggerSystem(),
+            new EntityEnableStateSyncSystem(),
             new ProbeSystem(() =>
             {
                 if (enablePass)

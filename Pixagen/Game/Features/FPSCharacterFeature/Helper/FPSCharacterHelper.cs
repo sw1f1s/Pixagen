@@ -9,8 +9,6 @@ namespace Pixagen.Game.Features.FPSCharacterFeature.Helper;
 public sealed class FPSCharacterHelper
 {
     private readonly CustomInject<EntityStateHelper> _entityState = default;
-    private readonly ComponentInject<Transform> _transforms = default;
-    private readonly ComponentInject<LocalTransform> _localTransforms = default;
     private readonly ComponentInject<Velocity> _velocities = default;
     private readonly ComponentInject<FPSCharacter> _fpsCharacters = default;
     private readonly ComponentInject<RigidBody> _rigidBodies = default;
@@ -32,7 +30,8 @@ public sealed class FPSCharacterHelper
     {
         Entity character = _entityState.Value.CreateObject();
         var characterTransform = new Transform(options.Position, options.Rotation, Vector3.One);
-        SetTransform(character, characterTransform);
+        _entityState.Value.SetTransform(character, characterTransform);
+        _entityState.Value.SetLocalTransform(character, LocalTransform.FromTransform(characterTransform));
 
         _velocities.Add(character, new Velocity());
         _fpsCharacters.Add(character, new FPSCharacter(
@@ -62,10 +61,8 @@ public sealed class FPSCharacterHelper
             new Vector3(Fix.Zero, ResolveCameraHeight(options), Fix.Zero),
             Quaternion.FromAxisAngle(Vector3.Right, fpsCamera.Pitch),
             Vector3.One);
-        SetTransform(camera, ToWorldTransform(parentTransform, localTransform));
-
-        ref LocalTransform existingLocalTransform = ref _localTransforms.Get(camera);
-        existingLocalTransform = localTransform;
+        _entityState.Value.SetTransform(camera, ToWorldTransform(parentTransform, localTransform));
+        _entityState.Value.SetLocalTransform(camera, localTransform);
 
         _cameras.Add(camera, new Camera(
             options.CameraProjectionPlaneDistance,
@@ -75,15 +72,6 @@ public sealed class FPSCharacterHelper
         _fpsCameras.Add(camera, fpsCamera);
 
         return camera;
-    }
-
-    private void SetTransform(in Entity entity, in Transform transform)
-    {
-        ref Transform existingTransform = ref _transforms.Get(entity);
-        existingTransform = transform;
-
-        ref LocalTransform localTransform = ref _localTransforms.Get(entity);
-        localTransform = LocalTransform.FromTransform(transform);
     }
 
     private static Transform ToWorldTransform(in Transform parentTransform, in LocalTransform localTransform)

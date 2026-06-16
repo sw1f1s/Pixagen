@@ -7,6 +7,7 @@ public readonly record struct PerformanceSnapshot(
     double InstantFramesPerSecond,
     ulong FrameCount,
     int DrawCalls,
+    int Passes,
     int Triangles,
     int ShadowTriangles,
     int TextureCount,
@@ -17,5 +18,5 @@ public readonly record struct PerformanceSnapshot(
     long PrivateMemoryBytes,
     long GcHeapBytes)
 {
-    public static PerformanceSnapshot Empty => new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+    public static PerformanceSnapshot Empty => new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 }

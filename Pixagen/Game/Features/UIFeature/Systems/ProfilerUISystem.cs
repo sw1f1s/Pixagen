@@ -48,6 +48,7 @@ CPU   {stats.CpuFrameMilliseconds,6:0.00} MS
 GPU   {stats.GpuFrameMilliseconds,6:0.00} MS
 FPS   {stats.FramesPerSecond,6:0.0}
 CALLS {stats.DrawCalls,6}
+PASS  {stats.Passes,6}
 TRIS  {stats.Triangles,6} / SH {stats.ShadowTriangles}
 VRAM  {FormatBytes(stats.VramBytes),9}
 TEX   {stats.TextureCount,6} / {FormatBytes(stats.TextureBytes)}

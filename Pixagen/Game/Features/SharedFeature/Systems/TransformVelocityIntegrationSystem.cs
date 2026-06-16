@@ -63,6 +63,14 @@ public sealed class TransformVelocityIntegrationSystem : IUpdateSystem
                 return;
             }
 
+            if ((velocity.RotationAxis.IsZero || velocity.RotationAngleDelta == Fix.Zero) &&
+                velocity.PitchDelta == Fix.Zero &&
+                velocity.RollDelta == Fix.Zero)
+            {
+                ApplyYawOnly(ref transform, ref velocity);
+                return;
+            }
+
             Quaternion rotation = NormalizeIfNeeded(transform.Rotation);
             ApplyAxisAngle(ref rotation, velocity.RotationAxis, velocity.RotationAngleDelta, false);
             ApplyAxisAngle(ref rotation, Vector3.Up, velocity.YawDelta, true);
@@ -85,9 +93,28 @@ public sealed class TransformVelocityIntegrationSystem : IUpdateSystem
             velocity.RollDelta = Fix.Zero;
         }
 
+        private static void ApplyYawOnly(ref Transform transform, ref Velocity velocity)
+        {
+            if (velocity.YawDelta == Fix.Zero)
+            {
+                ClearRotation(ref velocity);
+                return;
+            }
+
+            Quaternion rotation = NormalizeZeroRotation(transform.Rotation);
+            ApplyAxisAngle(ref rotation, Vector3.Up, velocity.YawDelta, true);
+            transform.Rotation = NormalizeIfNeeded(rotation);
+            ClearRotation(ref velocity);
+        }
+
         private static void ApplyAxisAngle(ref Quaternion rotation, Vector3 axis, Fix angle, bool axisIsNormalized)
         {
-            if (axis.IsZero || angle == Fix.Zero)
+            if (angle == Fix.Zero)
+            {
+                return;
+            }
+
+            if (axis.IsZero)
             {
                 return;
             }
@@ -108,6 +135,20 @@ public sealed class TransformVelocityIntegrationSystem : IUpdateSystem
             }
 
             rotation = Quaternion.FromAxisAngle(axis, angle) * rotation;
+        }
+
+        private static void ClearRotation(ref Velocity velocity)
+        {
+            velocity.RotationAxis = Vector3.Zero;
+            velocity.RotationAngleDelta = Fix.Zero;
+            velocity.YawDelta = Fix.Zero;
+            velocity.PitchDelta = Fix.Zero;
+            velocity.RollDelta = Fix.Zero;
+        }
+
+        private static Quaternion NormalizeZeroRotation(Quaternion rotation)
+        {
+            return rotation.MagnitudeSquared <= Fix.Epsilon ? Quaternion.Identity : rotation;
         }
 
         private static Fix NormalizeAngleIfNeeded(Fix angle)

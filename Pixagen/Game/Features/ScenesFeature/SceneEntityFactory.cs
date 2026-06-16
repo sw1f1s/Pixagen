@@ -11,8 +11,6 @@ public sealed class SceneEntityFactory
     private readonly CustomInject<EntityStateHelper> _entityState = default;
     private readonly ComponentInject<Info> _infos = default;
     private readonly ComponentInject<SceneObject> _sceneObjects = default;
-    private readonly ComponentInject<Transform> _transforms = default;
-    private readonly ComponentInject<LocalTransform> _localTransforms = default;
     private readonly Dictionary<Type, Action<Entity, IComponent>> _componentWriters = new();
 
     public Entity Create(string sceneId, SceneObjectDefinition definition)
@@ -34,20 +32,16 @@ public sealed class SceneEntityFactory
         switch (component)
         {
             case Info info:
-                ref Info existingInfo = ref _infos.Get(entity);
-                existingInfo = info;
+                _infos.Replace(entity, info);
                 return;
 
             case Transform transform:
-                ref Transform existingTransform = ref _transforms.Get(entity);
-                existingTransform = transform;
-                ref LocalTransform transformLocal = ref _localTransforms.Get(entity);
-                transformLocal = LocalTransform.FromTransform(transform);
+                _entityState.Value.SetTransform(entity, transform);
+                _entityState.Value.SetLocalTransform(entity, LocalTransform.FromTransform(transform));
                 return;
 
             case LocalTransform localTransform:
-                ref LocalTransform existingLocalTransform = ref _localTransforms.Get(entity);
-                existingLocalTransform = localTransform;
+                _entityState.Value.SetLocalTransform(entity, localTransform);
                 return;
 
             case Children:
@@ -70,4 +64,5 @@ public sealed class SceneEntityFactory
         _componentWriters.Add(componentType, writer);
         return writer;
     }
+
 }

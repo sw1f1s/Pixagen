@@ -96,7 +96,9 @@ public sealed class HierarchyTests
         localTransforms.Get(child).Position = new Vector3(Fix.One, new Fix(2), new Fix(3));
         context.State.AddChild(parent, child);
 
-        var systems = context.BuildSystems(new HierarchyTransformSystem());
+        var systems = context.BuildSystems(
+            new HierarchyDirtyQueueInitSystem(),
+            new HierarchyTransformSystem());
         systems.Update();
 
         AssertEx.Equal(new Vector3(new Fix(3), new Fix(5), new Fix(7)), Access(child).Get<Transform>().Position);
@@ -116,13 +118,123 @@ public sealed class HierarchyTests
         transforms.Get(unrelated).Position = new Vector3(new Fix(10), Fix.Zero, Fix.Zero);
         context.State.AddChild(parent, child);
 
-        var systems = context.BuildSystems(new TransformVelocityIntegrationSystem(), new HierarchyTransformSystem());
+        var systems = context.BuildSystems(
+            new HierarchyDirtyQueueInitSystem(),
+            new HierarchyDirtySystem(),
+            new TransformVelocityIntegrationSystem(),
+            new HierarchyTransformSystem());
         systems.Update();
 
         AssertEx.Equal(new Vector3(new Fix(5), Fix.Zero, Fix.One), Access(parent).Get<Transform>().Position);
         AssertEx.Equal(new Vector3(new Fix(5), new Fix(2), Fix.One), Access(child).Get<Transform>().Position);
         AssertEx.Equal(new Vector3(new Fix(10), Fix.Zero, Fix.Zero), Access(unrelated).Get<Transform>().Position);
         AssertEx.Equal(new Vector3(Fix.Zero, new Fix(2), Fix.Zero), Access(child).Get<LocalTransform>().Position);
+    }
+
+    [Fact]
+    public void HierarchyDirtySystem_MarksMovingParentAndUpdatesSubtreeOnlyWhenNeeded()
+    {
+        using var context = new EcsTestContext();
+        Entity parent = context.State.CreateObject();
+        Entity child = context.State.CreateObject();
+        var localTransforms = context.Component<LocalTransform>();
+        localTransforms.Get(child).Position = new Vector3(Fix.Zero, new Fix(2), Fix.Zero);
+        context.State.AddChild(parent, child);
+
+        var systems = context.BuildSystems(
+            new HierarchyDirtyQueueInitSystem(),
+            new HierarchyDirtySystem(),
+            new TransformVelocityIntegrationSystem(),
+            new HierarchyTransformSystem());
+        systems.Update();
+
+        Access(parent).Add(new Velocity { PositionDelta = new Vector3(new Fix(3), Fix.Zero, Fix.Zero) });
+        systems.Update();
+
+        AssertEx.Equal(new Vector3(new Fix(3), Fix.Zero, Fix.Zero), Access(parent).Get<Transform>().Position);
+        AssertEx.Equal(new Vector3(new Fix(3), new Fix(2), Fix.Zero), Access(child).Get<Transform>().Position);
+        Assert.False(Access(parent).Has<TransformDirty>());
+        Assert.False(Access(child).Has<HierarchyDirty>());
+    }
+
+    [Fact]
+    public void HierarchyTransformSystem_RecalculatesLocalDirtyNodeAndDescendants()
+    {
+        using var context = new EcsTestContext();
+        Entity parent = context.State.CreateObject();
+        Entity child = context.State.CreateObject();
+        Entity grandChild = context.State.CreateObject();
+        var transforms = context.Component<Transform>();
+        var localTransforms = context.Component<LocalTransform>();
+        transforms.Get(parent).Position = new Vector3(new Fix(5), Fix.Zero, Fix.Zero);
+        localTransforms.Get(child).Position = new Vector3(Fix.One, Fix.Zero, Fix.Zero);
+        localTransforms.Get(grandChild).Position = new Vector3(Fix.Zero, new Fix(2), Fix.Zero);
+        context.State.AddChild(parent, child);
+        context.State.AddChild(child, grandChild);
+
+        var systems = context.BuildSystems(
+            new HierarchyDirtyQueueInitSystem(),
+            new HierarchyTransformSystem());
+        systems.Update();
+
+        localTransforms.Get(child).Position = new Vector3(new Fix(2), Fix.Zero, Fix.Zero);
+        Access(child).Add(new HierarchyDirty());
+        systems.Update();
+
+        AssertEx.Equal(new Vector3(new Fix(7), Fix.Zero, Fix.Zero), Access(child).Get<Transform>().Position);
+        AssertEx.Equal(new Vector3(new Fix(7), new Fix(2), Fix.Zero), Access(grandChild).Get<Transform>().Position);
+        Assert.False(Access(child).Has<HierarchyDirty>());
+    }
+
+    [Fact]
+    public void HierarchyTransformSystem_PreservesDescendantWorldTransformDirtyUnderDirtyAncestor()
+    {
+        using var context = new EcsTestContext();
+        Entity parent = context.State.CreateObject();
+        Entity child = context.State.CreateObject();
+        Entity grandChild = context.State.CreateObject();
+        var transforms = context.Component<Transform>();
+        var localTransforms = context.Component<LocalTransform>();
+        localTransforms.Get(child).Position = Vector3.Right;
+        localTransforms.Get(grandChild).Position = new Vector3(Fix.Zero, new Fix(2), Fix.Zero);
+        context.State.AddChild(parent, child);
+        context.State.AddChild(child, grandChild);
+
+        var systems = context.BuildSystems(
+            new HierarchyDirtyQueueInitSystem(),
+            new HierarchyTransformSystem());
+        systems.Update();
+
+        transforms.Get(parent).Position = new Vector3(new Fix(10), Fix.Zero, Fix.Zero);
+        transforms.Get(child).Position = new Vector3(new Fix(100), Fix.Zero, Fix.Zero);
+        Access(parent).Add(new TransformDirty());
+        Access(child).Add(new TransformDirty());
+        systems.Update();
+
+        AssertEx.Equal(new Vector3(new Fix(100), Fix.Zero, Fix.Zero), Access(child).Get<Transform>().Position);
+        AssertEx.Equal(new Vector3(new Fix(100), new Fix(2), Fix.Zero), Access(grandChild).Get<Transform>().Position);
+        Assert.False(Access(parent).Has<TransformDirty>());
+        Assert.False(Access(child).Has<TransformDirty>());
+    }
+
+    [Fact]
+    public void HierarchyTransformSystem_ClearsStaleHierarchyDirtyWhenParentIsDead()
+    {
+        using var context = new EcsTestContext();
+        Entity parent = context.State.CreateObject();
+        Entity child = context.State.CreateObject();
+        context.State.AddChild(parent, child);
+
+        var systems = context.BuildSystems(
+            new HierarchyDirtyQueueInitSystem(),
+            new HierarchyTransformSystem());
+        systems.Update();
+
+        Access(parent).Destroy();
+        Access(child).Add(new HierarchyDirty());
+        systems.Update();
+
+        Assert.False(Access(child).Has<HierarchyDirty>());
     }
 
     [Fact]
@@ -148,18 +260,19 @@ public sealed class HierarchyTests
     }
 
     [Fact]
-    public void EntityEnableStateSyncSystem_RefreshesDirectIsEnableWritesBeforeMovement()
+    public void EntityEnableStateSyncSystem_RefreshesDirtySubtreeBeforeMovement()
     {
         using var context = new EcsTestContext();
         Entity parent = context.State.CreateObject();
         Entity child = context.State.CreateObject();
         context.State.AddChild(parent, child);
-        Access(parent).Add(new IsEnable(false));
         Access(child).Add(new Velocity { PositionDelta = new Vector3(new Fix(5), Fix.Zero, Fix.Zero) });
 
         var systems = context.BuildSystems(
+            new EntityDisableTriggerSystem(),
             new EntityEnableStateSyncSystem(),
             new TransformVelocityIntegrationSystem());
+        context.State.Disable(parent);
         systems.Update();
 
         Assert.True(Access(parent).Has<DisabledInHierarchy>());
@@ -175,7 +288,11 @@ public sealed class HierarchyTests
         Entity child = context.State.CreateObject();
         context.State.AddChild(parent, child);
 
-        Access(parent).Add(new IsEnable(false));
+        var systems = context.BuildSystems(
+            new EntityDisableTriggerSystem(),
+            new EntityEnableStateSyncSystem());
+        context.State.Disable(parent);
+        systems.Update();
 
         Assert.False(context.State.IsEnabled(parent));
         Assert.False(context.State.IsEnabled(child));

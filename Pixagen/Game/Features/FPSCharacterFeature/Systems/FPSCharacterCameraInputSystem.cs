@@ -56,10 +56,16 @@ public sealed class FPSCharacterCameraInputSystem : IUpdateSystem
             camera.Pitch + pitchDelta,
             camera.MinPitch,
             camera.MaxPitch);
+        if (nextPitch == camera.Pitch)
+        {
+            return;
+        }
+
         camera.Pitch = nextPitch;
 
-        ref LocalTransform localTransform = ref _localTransforms.Get(entity);
+        LocalTransform localTransform = _localTransforms.Get(entity);
         localTransform.Rotation = Quaternion.FromAxisAngle(Vector3.Right, nextPitch);
+        _entityState.Value.SetLocalTransform(entity, localTransform);
     }
 
     private static sbyte Axis(InputState input, InputKey positive, InputKey negative)

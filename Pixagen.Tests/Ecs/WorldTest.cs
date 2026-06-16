@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
+using System.Threading;
 using Assert = NUnit.Framework.Assert;
 using NUnit.Framework;
 using Pixagen.Ecs.Collections;
@@ -432,6 +433,28 @@ namespace Pixagen.Tests.Ecs
         }
 
         [Test]
+        public void Run_Filter_RebuildsAllOnFirstAccessEvenWithPendingDirty()
+        {
+            var world = WorldBuilder.Build();
+            var entity1 = world.CreateEntity<IsTestEntity>();
+            var entity2 = world.CreateEntity<IsTestEntity>();
+            Access(entity1).Add(new Component1(1));
+            Access(entity2).Add(new Component1(2));
+
+            world.GetFilter(new FilterMask<Component3>()).GetCount();
+            Access(entity2).Add(new Component2(true));
+
+            var filter = world.GetFilter(new FilterMask<Component1>.Exclude<Component2>());
+            var entities = new List<Entity>();
+            filter.FillEntities(ref entities);
+
+            Assert.That(filter.GetCount(), Is.EqualTo(1));
+            Assert.That(entities[0], Is.EqualTo(entity1));
+
+            world.Dispose();
+        }
+
+        [Test]
         public void Run_FilterChunks_SplitDenseEntitiesAndRefreshWhenRequested()
         {
             var world = WorldBuilder.Build();
@@ -486,6 +509,73 @@ namespace Pixagen.Tests.Ecs
                 }
 
                 return result;
+            }
+        }
+
+        [Test]
+        public void Run_FilterChunks_ParallelRunnerVisitsEachEntityOnceAndRecoversAfterException()
+        {
+            var world = WorldBuilder.Build();
+            const int count = Filter.DefaultParallelEntityThreshold + 1024;
+            Entity[] entities = new Entity[count];
+            for (int i = 0; i < count; i++)
+            {
+                Entity entity = world.CreateEntity<IsTestEntity>();
+                Access(entity).Add(new Component1(i));
+                entities[i] = entity;
+            }
+
+            var filter = world.GetFilter(new FilterMask<Component1>());
+            Assert.Throws<InvalidOperationException>(() => filter.ForEachChunk(new ThrowingChunkJob()));
+
+            int[] visits = new int[count + 16];
+            filter.ForEachChunk(new CountingChunkJob(visits, runNestedJob: true));
+
+            for (int i = 0; i < entities.Length; i++)
+            {
+                Assert.That(visits[entities[i].Id], Is.EqualTo(1));
+            }
+
+            world.Dispose();
+        }
+
+        [Test]
+        public void Run_FilterChunks_ParallelRunnerSupportsConcurrentCallers()
+        {
+            const int chunkCount = 64;
+            const int callerCount = 4;
+            int[] visits = new int[chunkCount];
+            Exception? exception = null;
+            Thread[] threads = new Thread[callerCount];
+            for (int i = 0; i < threads.Length; i++)
+            {
+                threads[i] = new Thread(() =>
+                {
+                    try
+                    {
+                        FilterChunkRunner.Run(chunkCount, new CountingIndexJob(visits));
+                    }
+                    catch (Exception error)
+                    {
+                        Interlocked.CompareExchange(ref exception, error, null);
+                    }
+                });
+                threads[i].Start();
+            }
+
+            for (int i = 0; i < threads.Length; i++)
+            {
+                threads[i].Join();
+            }
+
+            if (exception is not null)
+            {
+                throw exception;
+            }
+
+            for (int i = 0; i < visits.Length; i++)
+            {
+                Assert.That(visits[i], Is.EqualTo(callerCount));
             }
         }
 
@@ -922,6 +1012,61 @@ namespace Pixagen.Tests.Ecs
                 ref Component3 component3 = ref _component3.GetOrSet(entity);
                 component3.Value = 4f;
             }
+        }
+    }
+
+    public readonly struct CountingChunkJob : IFilterChunkProcessor
+    {
+        private readonly int[] _visits;
+        private readonly bool _runNestedJob;
+
+        public CountingChunkJob(int[] visits, bool runNestedJob)
+        {
+            _visits = visits;
+            _runNestedJob = runNestedJob;
+        }
+
+        public void Execute(FilterChunk chunk)
+        {
+            if (_runNestedJob)
+            {
+                FilterChunkRunner.Run(2, new NoopChunkJob());
+            }
+
+            foreach (Entity entity in chunk.Entities)
+            {
+                Interlocked.Increment(ref _visits[entity.Id]);
+            }
+        }
+    }
+
+    public readonly struct ThrowingChunkJob : IFilterChunkProcessor
+    {
+        public void Execute(FilterChunk chunk)
+        {
+            throw new InvalidOperationException("Expected test chunk failure.");
+        }
+    }
+
+    public readonly struct NoopChunkJob : IFilterChunkJob
+    {
+        public void Execute(int chunkIndex)
+        {
+        }
+    }
+
+    public readonly struct CountingIndexJob : IFilterChunkJob
+    {
+        private readonly int[] _visits;
+
+        public CountingIndexJob(int[] visits)
+        {
+            _visits = visits;
+        }
+
+        public void Execute(int chunkIndex)
+        {
+            Interlocked.Increment(ref _visits[chunkIndex]);
         }
     }
 

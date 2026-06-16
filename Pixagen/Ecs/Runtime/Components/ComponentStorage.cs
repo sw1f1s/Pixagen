@@ -17,13 +17,11 @@ namespace Pixagen.Ecs.Runtime
         private SparseArrayInt _entities;
         private SparseArray<T> _components;
         private bool _isDisposed;
-        private int _version;
 
         public bool IsOneTickComponent { get; private set; }
         public Type ComponentType => typeof(T);
         public int Id => ComponentStorageIndex<T>.StaticId;
         public int Count => (int)_components.Count;
-        public int Version => _version;
         public ref SparseArrayInt Entities => ref _entities;
 
         internal ComponentStorage(PoolFactory poolFactory, in Options options)
@@ -175,7 +173,6 @@ namespace Pixagen.Ecs.Runtime
                 int entityId = entity.Id;
                 _components.Remove(entityId);
                 _entities.Remove(in entityId);
-                _version++;
                 return true;
             }
 
@@ -208,7 +205,6 @@ namespace Pixagen.Ecs.Runtime
             int entityId = entity.Id;
             _components.Add(entityId, in component);
             _entities.Add(in entityId);
-            _version++;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -217,7 +213,6 @@ namespace Pixagen.Ecs.Runtime
             int entityId = entity.Id;
             _components.Replace(entityId, in component);
             _entities.Replace(in entityId);
-            _version++;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -237,7 +232,6 @@ namespace Pixagen.Ecs.Runtime
         {
             _components.Clear();
             _entities.Clear();
-            _version++;
         }
 
         public void Dispose()

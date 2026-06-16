@@ -15,11 +15,13 @@ public sealed class SharedFeatureSystemsGroup : IGroupSystem
 
     public ISystem[] Systems { get; } =
     [
-        new EntityEnableStateSyncSystem(),
+        new HierarchyDirtyQueueInitSystem(),
         new EntityDisableTriggerSystem(),
         new EntityEnableTriggerSystem(),
+        new EntityEnableStateSyncSystem(),
         new RotationMotionSystem(),
         new LerpMovementSystem(),
+        new HierarchyDirtySystem(),
         new TransformVelocityIntegrationSystem(),
         new HierarchyTransformSystem(),
         new DestroySystem(),

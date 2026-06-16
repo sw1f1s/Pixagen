@@ -34,13 +34,15 @@ public sealed class PhysicsSyncTransformSystem : IFixedUpdateSystem
                 continue;
             }
 
-            ref Transform transform = ref _transforms.Get(entity);
+            Transform transform = _transforms.Get(entity);
             transform.Position = PhysicsConvert.ToFixed(body.Pose.Position);
 
             if (!rigidBody.LockRotation)
             {
                 transform.Rotation = PhysicsConvert.ToFixed(body.Pose.Orientation);
             }
+
+            _entityState.Value.SetTransform(entity, transform);
         }
     }
 }

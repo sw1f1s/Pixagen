@@ -67,14 +67,16 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
     private uint _raycastDispatchY;
     private long _currentGpuFrameStartTicks;
     private bool _hasCurrentGpuFrame;
+    private bool _gpuStalled;
     private int _currentRenderCalls;
+    private int _currentPasses;
 
     public VulkanWindowBackend(PerformanceStats performanceStats)
     {
         _performanceStats = performanceStats;
     }
 
-    public bool IsCloseRequested => _closeRequested || _window is not { Exists: true };
+    public bool IsCloseRequested => _gpuStalled || _closeRequested || _window is not { Exists: true };
 
     public void SetUiOverlayBuffer(UiOverlayBuffer uiOverlay)
     {
@@ -166,6 +168,11 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 
     public void Present(FrameBuffer frameBuffer)
     {
+        if (_gpuStalled)
+        {
+            return;
+        }
+
         GraphicsDevice graphicsDevice = RequireGraphicsDevice();
         CommandList commandList = RequireCommandList();
         int overlayWidth = frameBuffer.Width * _options.CellPixelSize;
@@ -185,16 +192,42 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 
         EnsureCompositeResourceSet();
 
-        BeginGpuFrame();
-        _currentRenderCalls++;
-        commandList.Begin();
         if (_hasComputeSceneFrame)
         {
-            commandList.SetPipeline(_raycastComputePipeline);
-            commandList.SetComputeResourceSet(0, _raycastComputeSet);
-            commandList.Dispatch(_raycastDispatchX, _raycastDispatchY, 1);
+            SubmitRaycastComputePass(graphicsDevice, commandList);
         }
 
+        SubmitCompositePass(graphicsDevice, commandList);
+        _performanceStats.RecordBackendFrame(new BackendPerformanceReport(
+            _currentRenderCalls,
+            _currentPasses,
+            EstimateVramBytes()));
+        _hasCurrentGpuFrame = false;
+        _currentRenderCalls = 0;
+        _currentPasses = 0;
+        _hasComputeSceneFrame = false;
+        _raycastDispatchX = 0;
+        _raycastDispatchY = 0;
+    }
+
+    private void SubmitRaycastComputePass(GraphicsDevice graphicsDevice, CommandList commandList)
+    {
+        BeginGpuFrame();
+        _currentPasses++;
+        commandList.Begin();
+        commandList.SetPipeline(_raycastComputePipeline);
+        commandList.SetComputeResourceSet(0, _raycastComputeSet);
+        commandList.Dispatch(_raycastDispatchX, _raycastDispatchY, 1);
+        commandList.End();
+        graphicsDevice.SubmitCommands(commandList);
+    }
+
+    private void SubmitCompositePass(GraphicsDevice graphicsDevice, CommandList commandList)
+    {
+        BeginGpuFrame();
+        _currentRenderCalls++;
+        _currentPasses++;
+        commandList.Begin();
         commandList.SetFramebuffer(graphicsDevice.SwapchainFramebuffer);
         commandList.ClearColorTarget(0, RgbaFloat.Black);
         commandList.SetPipeline(_compositePipeline);
@@ -206,12 +239,6 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         graphicsDevice.SubmitCommands(commandList, frameFence);
         TrackSubmittedGpuFrame(frameFence);
         graphicsDevice.SwapBuffers();
-        _performanceStats.RecordBackendFrame(new BackendPerformanceReport(_currentRenderCalls, EstimateVramBytes()));
-        _hasCurrentGpuFrame = false;
-        _currentRenderCalls = 0;
-        _hasComputeSceneFrame = false;
-        _raycastDispatchX = 0;
-        _raycastDispatchY = 0;
     }
 
     public bool TryRenderRaycast(in RaycastComputeRequest request)
@@ -304,16 +331,18 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         }
     }
 
-    private static void WaitForGpuFrame(GraphicsDevice graphicsDevice, PendingGpuFrame pendingFrame)
+    private void WaitForGpuFrame(GraphicsDevice graphicsDevice, PendingGpuFrame pendingFrame)
     {
         if (graphicsDevice.WaitForFence(pendingFrame.Fence, GpuFenceTimeout))
         {
             return;
         }
 
+        _gpuStalled = true;
+        _closeRequested = true;
         throw new InvalidOperationException(
             $"GPU frame did not complete within {GpuFenceTimeout.TotalSeconds:0.#} seconds. " +
-            "The Vulkan backend stopped submitting new frames to avoid a silent driver stall.");
+            "The Vulkan backend will request engine shutdown to avoid a repeating driver stall.");
     }
 
     private void PollCompletedGpuFrames()

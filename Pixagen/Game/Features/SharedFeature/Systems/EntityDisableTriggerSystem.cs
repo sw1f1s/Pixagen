@@ -11,7 +11,7 @@ public sealed class EntityDisableTriggerSystem : IPreUpdateSystem
     private readonly ComponentInject<DisableNextTick> _disableNextTicks = default;
     private readonly ComponentInject<EnableOneTick> _enableTicks = default;
     private readonly ComponentInject<DisableOneTick> _disableTicks = default;
-    private readonly ComponentInject<DisabledInHierarchy> _disabledInHierarchy = default;
+    private readonly ComponentInject<EnableStateDirtyOneTick> _enableStateDirtyTicks = default;
 
     public void PreUpdate()
     {
@@ -27,6 +27,7 @@ public sealed class EntityDisableTriggerSystem : IPreUpdateSystem
             }
 
             Apply(entity);
+            MarkEnableStateDirty(entity);
         }
     }
 
@@ -39,7 +40,6 @@ public sealed class EntityDisableTriggerSystem : IPreUpdateSystem
 
         RemovePendingTicks(entity);
         Disable(entity);
-        SetDisabledInHierarchy(entity);
 
         if (!_children.Has(entity))
         {
@@ -55,15 +55,7 @@ public sealed class EntityDisableTriggerSystem : IPreUpdateSystem
 
     private void Disable(Entity entity)
     {
-        if (!_enableStates.Has(entity))
-        {
-            _enableStates.Add(entity, new IsEnable(false));
-        }
-        else
-        {
-            ref IsEnable state = ref _enableStates.Get(entity);
-            state.Value = false;
-        }
+        _enableStates.Replace(entity, new IsEnable(false));
 
         if (_enableTicks.Has(entity))
         {
@@ -73,14 +65,6 @@ public sealed class EntityDisableTriggerSystem : IPreUpdateSystem
         if (!_disableTicks.Has(entity))
         {
             _disableTicks.Add(entity, new DisableOneTick());
-        }
-    }
-
-    private void SetDisabledInHierarchy(Entity entity)
-    {
-        if (!_disabledInHierarchy.Has(entity))
-        {
-            _disabledInHierarchy.Add(entity, new DisabledInHierarchy());
         }
     }
 
@@ -94,6 +78,14 @@ public sealed class EntityDisableTriggerSystem : IPreUpdateSystem
         if (_disableNextTicks.Has(entity))
         {
             _disableNextTicks.Remove(entity);
+        }
+    }
+
+    private void MarkEnableStateDirty(Entity entity)
+    {
+        if (!_enableStateDirtyTicks.Has(entity))
+        {
+            _enableStateDirtyTicks.Add(entity, new EnableStateDirtyOneTick());
         }
     }
 }

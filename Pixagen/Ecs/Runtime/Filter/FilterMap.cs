@@ -3,12 +3,18 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 namespace Pixagen.Ecs.Runtime
 {
+    internal enum FilterDirtyOperation : byte
+    {
+        Add,
+        Remove
+    }
+
     internal class FilterMap : IDisposable
     {
         private readonly List<Filter> _filters;
         private readonly Dictionary<int, List<int>> _filterComponentsMaps;
         private readonly Dictionary<int, List<int>> _filterMaskMaps;
-        private readonly List<(int ComponentId, int EntityId)> _pendingDirty;
+        private readonly List<(int ComponentId, int EntityId, FilterDirtyOperation Operation)> _pendingDirty;
         private readonly Options _options;
         private IWorld _world;
         private int _version;
@@ -22,7 +28,7 @@ namespace Pixagen.Ecs.Runtime
             _filters = new List<Filter>((int)_options.FilterCapacity);
             _filterComponentsMaps = new Dictionary<int, List<int>>((int)_options.FilterCapacity);
             _filterMaskMaps = new Dictionary<int, List<int>>((int)_options.FilterCapacity);
-            _pendingDirty = new List<(int, int)>((int)_options.EntityCapacity * (int)_options.ComponentCapacity);
+            _pendingDirty = new List<(int, int, FilterDirtyOperation)>((int)_options.EntityCapacity * (int)_options.ComponentCapacity);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -50,9 +56,9 @@ namespace Pixagen.Ecs.Runtime
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public void AddDirtyEntity(int componentId, int entityId)
+        public void AddDirtyEntity(int componentId, int entityId, FilterDirtyOperation operation)
         {
-            _pendingDirty.Add((componentId, entityId));
+            _pendingDirty.Add((componentId, entityId, operation));
             _version++;
         }
 
@@ -66,12 +72,12 @@ namespace Pixagen.Ecs.Runtime
 
             for (int i = 0; i < _pendingDirty.Count; i++)
             {
-                var (componentId, entityId) = _pendingDirty[i];
+                var (componentId, entityId, operation) = _pendingDirty[i];
                 if (_filterComponentsMaps.TryGetValue(componentId, out var filterIndexes))
                 {
                     for (int j = 0; j < filterIndexes.Count; j++)
                     {
-                        _filters[filterIndexes[j]].SetDirty(entityId);
+                        _filters[filterIndexes[j]].SetDirty(componentId, entityId, operation);
                     }
                 }
             }

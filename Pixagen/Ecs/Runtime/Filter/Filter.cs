@@ -6,17 +6,18 @@ namespace Pixagen.Ecs.Runtime
 {
     public sealed class Filter : IDisposable
     {
-        public const int DefaultChunkSize = 512;
+        public const int DefaultChunkSize = 2048;
         public const int DefaultParallelEntityThreshold = 4096;
 
         private FilterMap _map;
         private IWorld _world;
-        private readonly object _cacheUpdateLock = new();
         private Entity[] _denseEntities;
         private int[] _sparseEntityIndexes;
         private int[] _chunkOffsets;
         private int _denseEntitiesCount;
         private SparseArrayInt _dirtyEntities;
+        private byte[] _dirtyEntityModes;
+        private byte[] _dirtyMatches;
 
         private readonly int _mainComponent;
         private BitMask _includes;
@@ -24,6 +25,7 @@ namespace Pixagen.Ecs.Runtime
 
         private bool _isDirty;
         private bool _isDisposed;
+        private bool _requiresFullRebuild;
         private int _version;
 
         public BitMask Includes => _includes;
@@ -39,10 +41,13 @@ namespace Pixagen.Ecs.Runtime
             _sparseEntityIndexes = new int[options.EntityCapacity];
             _chunkOffsets = new int[1];
             _dirtyEntities = new SparseArrayInt(options.EntityCapacity);
+            _dirtyEntityModes = new byte[options.EntityCapacity];
+            _dirtyMatches = new byte[DefaultChunkSize];
             _mainComponent = mask.MainComponent;
             _includes = mask.GetIncludes();
             _excludes = mask.GetExcludes();
             _isDirty = true;
+            _requiresFullRebuild = true;
         }
 
         public Enumerator GetEnumerator()
@@ -150,18 +155,26 @@ namespace Pixagen.Ecs.Runtime
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        internal void SetDirty(int entityId)
+        internal void SetDirty(int componentId, int entityId, FilterDirtyOperation operation)
         {
             if (entityId < 0)
             {
                 return;
             }
 
+            byte mode = ResolveDirtyMode(componentId, operation);
+            if (mode == DirtyModeNone)
+            {
+                return;
+            }
+
+            EnsureDirtyModeCapacity(entityId);
             if (!_dirtyEntities.Has(in entityId))
             {
                 _dirtyEntities.Add(in entityId);
             }
 
+            _dirtyEntityModes[entityId] = MergeDirtyMode(_dirtyEntityModes[entityId], mode);
             _isDirty = true;
         }
 
@@ -179,7 +192,7 @@ namespace Pixagen.Ecs.Runtime
                 return;
             }
 
-            if (_dirtyEntities.Count == 0)
+            if (_requiresFullRebuild || _dirtyEntities.Count == 0)
             {
                 RebuildAll();
             }
@@ -188,8 +201,10 @@ namespace Pixagen.Ecs.Runtime
                 UpdateDirtyEntities();
             }
 
+            ClearDirtyModes();
             _dirtyEntities.Clear();
             _isDirty = false;
+            _requiresFullRebuild = false;
             _version++;
         }
 
@@ -198,12 +213,13 @@ namespace Pixagen.Ecs.Runtime
         {
             ClearCached();
 
-            if (!_world.HasComponentStorage(_mainComponent))
+            int mainComponent = SelectMainComponent();
+            if (mainComponent < 0 || !_world.HasComponentStorage(mainComponent))
             {
                 return;
             }
 
-            var mainStorage = _world.GetComponentStorage(_mainComponent);
+            var mainStorage = _world.GetComponentStorage(mainComponent);
             var mainEntities = mainStorage.Entities;
             int candidateCount = (int)mainEntities.Count;
             if (candidateCount == 0)
@@ -285,19 +301,30 @@ namespace Pixagen.Ecs.Runtime
         {
             for (int i = 0; i < dirtyCount; i++)
             {
-                ApplyDirtyEntity(dirtyEntityIds[i], MatchesDirtyEntity(dirtyEntityIds[i]));
+                int entityId = dirtyEntityIds[i];
+                ApplyDirtyEntity(entityId, MatchesDirtyEntity(entityId, _dirtyEntityModes[entityId]));
             }
         }
 
         private void UpdateDirtyEntitiesParallel(int[] dirtyEntityIds, int dirtyCount)
         {
+            EnsureDirtyMatchCapacity(dirtyCount);
             int chunkCount = GetChunkCount(dirtyCount, DefaultChunkSize);
-            FilterChunkRunner.Run(chunkCount, new DirtyUpdateJob(this, dirtyEntityIds, dirtyCount));
+            FilterChunkRunner.Run(chunkCount, new DirtyMatchJob(this, dirtyEntityIds, dirtyCount, _dirtyMatches));
+            for (int i = 0; i < dirtyCount; i++)
+            {
+                ApplyDirtyEntity(dirtyEntityIds[i], _dirtyMatches[i]);
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private byte MatchesDirtyEntity(int entityId)
+        private byte MatchesDirtyEntity(int entityId, byte dirtyMode)
         {
+            if (dirtyMode == DirtyModeRemoveCached)
+            {
+                return 0;
+            }
+
             return (byte)(_world.Entities.Has(entityId) && Matches(entityId) ? 1 : 0);
         }
 
@@ -333,6 +360,65 @@ namespace Pixagen.Ecs.Runtime
             }
 
             return true;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private int SelectMainComponent()
+        {
+            int mainComponent = -1;
+            int minCount = int.MaxValue;
+            foreach (int componentId in _includes)
+            {
+                if (!_world.HasComponentStorage(componentId))
+                {
+                    return -1;
+                }
+
+                int count = _world.GetComponentStorage(componentId).Count;
+                if (count < minCount)
+                {
+                    minCount = count;
+                    mainComponent = componentId;
+                    if (count == 0)
+                    {
+                        break;
+                    }
+                }
+            }
+
+            return mainComponent >= 0 ? mainComponent : _mainComponent;
+        }
+
+        private const byte DirtyModeNone = 0;
+        private const byte DirtyModeRemoveCached = 1;
+        private const byte DirtyModeCheckFinalState = 2;
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private byte ResolveDirtyMode(int componentId, FilterDirtyOperation operation)
+        {
+            if (_includes.Has(componentId))
+            {
+                return operation == FilterDirtyOperation.Remove
+                    ? DirtyModeRemoveCached
+                    : DirtyModeCheckFinalState;
+            }
+
+            if (_excludes.Has(componentId))
+            {
+                return operation == FilterDirtyOperation.Add
+                    ? DirtyModeRemoveCached
+                    : DirtyModeCheckFinalState;
+            }
+
+            return DirtyModeNone;
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static byte MergeDirtyMode(byte current, byte next)
+        {
+            return current == DirtyModeCheckFinalState || next == DirtyModeCheckFinalState
+                ? DirtyModeCheckFinalState
+                : next;
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -443,6 +529,26 @@ namespace Pixagen.Ecs.Runtime
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void EnsureDirtyModeCapacity(int entityId)
+        {
+            while (entityId >= _dirtyEntityModes.Length)
+            {
+                int newSize = Math.Max(1, _dirtyEntityModes.Length * 2);
+                Array.Resize(ref _dirtyEntityModes, newSize);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void EnsureDirtyMatchCapacity(int count)
+        {
+            while (count > _dirtyMatches.Length)
+            {
+                int newSize = Math.Max(1, _dirtyMatches.Length * 2);
+                Array.Resize(ref _dirtyMatches, newSize);
+            }
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private void EnsureSparseCapacityForEntityIds(int[] entityIds, int count)
         {
             int maxEntityId = -1;
@@ -455,6 +561,21 @@ namespace Pixagen.Ecs.Runtime
             }
 
             EnsureSparseCapacity(maxEntityId);
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void ClearDirtyModes()
+        {
+            int dirtyCount = (int)_dirtyEntities.Count;
+            int[] dirtyEntityIds = _dirtyEntities.DenseValues;
+            for (int i = 0; i < dirtyCount; i++)
+            {
+                int entityId = dirtyEntityIds[i];
+                if ((uint)entityId < (uint)_dirtyEntityModes.Length)
+                {
+                    _dirtyEntityModes[entityId] = DirtyModeNone;
+                }
+            }
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -507,7 +628,10 @@ namespace Pixagen.Ecs.Runtime
             _sparseEntityIndexes = null;
             _chunkOffsets = null;
             _denseEntitiesCount = 0;
+            _requiresFullRebuild = false;
             _dirtyEntities.Dispose();
+            _dirtyEntityModes = null;
+            _dirtyMatches = null;
         }
 
         private readonly struct RebuildCountJob : IFilterChunkJob
@@ -577,17 +701,19 @@ namespace Pixagen.Ecs.Runtime
             }
         }
 
-        private readonly struct DirtyUpdateJob : IFilterChunkJob
+        private readonly struct DirtyMatchJob : IFilterChunkJob
         {
             private readonly Filter _filter;
             private readonly int[] _dirtyEntityIds;
             private readonly int _dirtyCount;
+            private readonly byte[] _matches;
 
-            public DirtyUpdateJob(Filter filter, int[] dirtyEntityIds, int dirtyCount)
+            public DirtyMatchJob(Filter filter, int[] dirtyEntityIds, int dirtyCount, byte[] matches)
             {
                 _filter = filter;
                 _dirtyEntityIds = dirtyEntityIds;
                 _dirtyCount = dirtyCount;
+                _matches = matches;
             }
 
             public void Execute(int chunkIndex)
@@ -597,11 +723,7 @@ namespace Pixagen.Ecs.Runtime
                 for (int i = start; i < end; i++)
                 {
                     int entityId = _dirtyEntityIds[i];
-                    byte matches = _filter.MatchesDirtyEntity(entityId);
-                    lock (_filter._cacheUpdateLock)
-                    {
-                        _filter.ApplyDirtyEntity(entityId, matches);
-                    }
+                    _matches[i] = _filter.MatchesDirtyEntity(entityId, _filter._dirtyEntityModes[entityId]);
                 }
             }
         }

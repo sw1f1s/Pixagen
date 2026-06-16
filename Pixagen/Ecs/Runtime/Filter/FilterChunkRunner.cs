@@ -18,6 +18,10 @@ public interface IFilterChunkProcessor
 
 public static class FilterChunkRunner
 {
+    private const int ChunksPerWorker = 2;
+    [ThreadStatic]
+    private static int _runnerDepth;
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void Run<TJob>(FilterChunks chunks, TJob job, bool allowParallel)
         where TJob : struct, IFilterChunkProcessor
@@ -40,7 +44,12 @@ public static class FilterChunkRunner
             return;
         }
 
-        int workerCount = Math.Min(chunkCount, Environment.ProcessorCount);
+        int workerCount = GetWorkerCount(chunkCount);
+        if (_runnerDepth > 0)
+        {
+            workerCount = 1;
+        }
+
         if (workerCount <= 1)
         {
             RunSequential(chunkCount, job);
@@ -50,17 +59,8 @@ public static class FilterChunkRunner
         RunState<TJob> state = Pool<TJob>.RentState();
         state.Reset(chunkCount, workerCount, job);
 
-        for (int i = 1; i < workerCount; i++)
-        {
-            Worker<TJob> worker = Pool<TJob>.RentWorker();
-            worker.State = state;
-            if (!ThreadPool.UnsafeQueueUserWorkItem(static queuedWorker => queuedWorker.Execute(), worker, false))
-            {
-                worker.Execute();
-            }
-        }
-
-        ExecuteWorker(state);
+        PersistentWorkerPool.Queue(state, workerCount - 1);
+        state.ExecuteWorker();
         state.Wait();
 
         Exception? exception = state.Exception;
@@ -94,6 +94,7 @@ public static class FilterChunkRunner
     private static void ExecuteWorker<TJob>(RunState<TJob> state)
         where TJob : struct, IFilterChunkJob
     {
+        _runnerDepth++;
         try
         {
             while (true)
@@ -113,6 +114,7 @@ public static class FilterChunkRunner
         }
         finally
         {
+            _runnerDepth--;
             if (Interlocked.Decrement(ref state.RemainingWorkers) == 0)
             {
                 state.SetComplete();
@@ -120,11 +122,17 @@ public static class FilterChunkRunner
         }
     }
 
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    private static int GetWorkerCount(int chunkCount)
+    {
+        int workerLimitByChunks = Math.Max(1, (chunkCount + ChunksPerWorker - 1) / ChunksPerWorker);
+        return Math.Min(chunkCount, Math.Min(Environment.ProcessorCount, workerLimitByChunks));
+    }
+
     private static class Pool<TJob>
         where TJob : struct, IFilterChunkJob
     {
         private static readonly ConcurrentQueue<RunState<TJob>> States = new();
-        private static readonly ConcurrentQueue<Worker<TJob>> Workers = new();
 
         public static RunState<TJob> RentState()
         {
@@ -136,19 +144,15 @@ public static class FilterChunkRunner
             state.Clear();
             States.Enqueue(state);
         }
+    }
 
-        public static Worker<TJob> RentWorker()
-        {
-            return Workers.TryDequeue(out Worker<TJob>? worker) ? worker : new Worker<TJob>();
-        }
-
-        public static void ReturnWorker(Worker<TJob> worker)
-        {
-            Workers.Enqueue(worker);
-        }
+    private interface IChunkRunState
+    {
+        void ExecuteWorker();
     }
 
     private sealed class RunState<TJob>
+        : IChunkRunState
         where TJob : struct, IFilterChunkJob
     {
         private readonly ManualResetEventSlim _complete = new(false);
@@ -179,6 +183,11 @@ public static class FilterChunkRunner
             _complete.Set();
         }
 
+        public void ExecuteWorker()
+        {
+            FilterChunkRunner.ExecuteWorker(this);
+        }
+
         public void Clear()
         {
             Job = default;
@@ -189,22 +198,60 @@ public static class FilterChunkRunner
         }
     }
 
-    private sealed class Worker<TJob>
-        where TJob : struct, IFilterChunkJob
+    private static class PersistentWorkerPool
     {
-        public RunState<TJob>? State;
+        private static readonly ConcurrentQueue<IChunkRunState> QueueItems = new();
+        private static readonly SemaphoreSlim Signal = new(0);
+        private static int _started;
 
-        public void Execute()
+        public static void Queue(IChunkRunState state, int workerCount)
         {
-            RunState<TJob> state = State ?? throw new InvalidOperationException("Chunk worker state was not assigned.");
-            State = null;
-            try
+            if (workerCount <= 0)
             {
-                ExecuteWorker(state);
+                return;
             }
-            finally
+
+            EnsureStarted();
+            for (int i = 0; i < workerCount; i++)
             {
-                Pool<TJob>.ReturnWorker(this);
+                QueueItems.Enqueue(state);
+                Signal.Release();
+            }
+        }
+
+        private static void EnsureStarted()
+        {
+            if (Volatile.Read(ref _started) != 0)
+            {
+                return;
+            }
+
+            if (Interlocked.CompareExchange(ref _started, 1, 0) != 0)
+            {
+                return;
+            }
+
+            int workerCount = Math.Max(0, Environment.ProcessorCount - 1);
+            for (int i = 0; i < workerCount; i++)
+            {
+                var thread = new Thread(WorkerLoop)
+                {
+                    IsBackground = true,
+                    Name = $"Pixagen Filter Worker {i + 1}"
+                };
+                thread.Start();
+            }
+        }
+
+        private static void WorkerLoop()
+        {
+            while (true)
+            {
+                Signal.Wait();
+                if (QueueItems.TryDequeue(out IChunkRunState? state))
+                {
+                    state.ExecuteWorker();
+                }
             }
         }
     }

@@ -11,6 +11,7 @@ coverage.cobertura.xml
 
 # Benchmark and profiling output
 BenchmarkDotNet.Artifacts/
+Pixagen.Benchmark/Reports/
 *.trace
 *.vspx
 

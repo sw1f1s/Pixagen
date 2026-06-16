@@ -5,6 +5,7 @@ using Pixagen.Game.Features.FPSCharacterFeature.Systems;
 using Pixagen.Game.Features.PhysicsFeature.Components;
 using Pixagen.Game.Features.PhysicsFeature.Runtime;
 using Pixagen.Game.Features.SharedFeature.Helper;
+using Pixagen.Game.Features.SharedFeature.Systems;
 using Pixagen.Tests.TestSupport;
 using static Pixagen.Tests.TestSupport.EcsTestAccess;
 
@@ -97,10 +98,13 @@ public sealed class FPSCharacterInputTests
         using var context = new EcsTestContext();
         Entity character = CreateCharacter(context);
         Entity camera = FindCharacterCamera(character);
-        Access(character).Add(new IsEnable(false));
         context.Input.AddMouseDelta(0, 100);
 
-        var systems = context.BuildSystems(new FPSCharacterCameraInputSystem());
+        var systems = context.BuildSystems(
+            new EntityDisableTriggerSystem(),
+            new EntityEnableStateSyncSystem(),
+            new FPSCharacterCameraInputSystem());
+        context.State.Disable(character);
         systems.Update();
 
         Assert.Equal(Fix.Zero, Access(camera).Get<FPSCharacterCamera>().Pitch);

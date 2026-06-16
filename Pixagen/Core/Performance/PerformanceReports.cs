@@ -8,6 +8,7 @@ public readonly record struct RenderPerformanceReport(
 
 public readonly record struct BackendPerformanceReport(
     int DrawCalls,
+    int Passes,
     long VramBytes);
 
 public readonly record struct MemoryPerformanceReport(

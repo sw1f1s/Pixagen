@@ -170,9 +170,9 @@ public sealed class PerformanceStats
         }
     }
 
-    public void RecordBackendFrame(int drawCalls, long vramBytes)
+    public void RecordBackendFrame(int drawCalls, int passes, long vramBytes)
     {
-        RecordBackendFrame(new BackendPerformanceReport(drawCalls, vramBytes));
+        RecordBackendFrame(new BackendPerformanceReport(drawCalls, passes, vramBytes));
     }
 
     public void RecordBackendFrame(BackendPerformanceReport report)
@@ -182,6 +182,7 @@ public sealed class PerformanceStats
             _snapshot = _snapshot with
             {
                 DrawCalls = Math.Max(0, report.DrawCalls),
+                Passes = Math.Max(0, report.Passes),
                 VramBytes = Math.Max(0, report.VramBytes)
             };
         }
