@@ -1,3 +1,4 @@
+using System;
 using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 using Pixagen.Game.Features.SharedFeature.Components;
@@ -15,27 +16,42 @@ public sealed class VelocityWorkloadSystem : IUpdateSystem
 
     public void Update()
     {
-        int visited = 0;
         Fix frameFactor = new Fix((int)(_time.Value.FrameIndex % 120) + 1) / new Fix(4096);
         Fix baseDelta = Fix.One / new Fix(128);
+        _moving.Value.ForEachChunk(new ChunkJob(_velocities, frameFactor, baseDelta));
+        LastVisited = (int)_moving.Value.GetCount();
+    }
 
-        foreach (Entity entity in _moving.Value)
+    private readonly struct ChunkJob : IFilterChunkProcessor
+    {
+        private readonly ComponentInject<Velocity> _velocities;
+        private readonly Fix _frameFactor;
+        private readonly Fix _baseDelta;
+
+        public ChunkJob(ComponentInject<Velocity> velocities, Fix frameFactor, Fix baseDelta)
         {
-            ref Velocity velocity = ref _velocities.Get(entity);
-            int pattern = entity.Id & 7;
-            velocity.PositionDelta = new Vector3(
-                new Fix((pattern & 1) == 0 ? 1 : -1) * baseDelta,
-                new Fix((pattern & 2) == 0 ? 1 : 0) * frameFactor,
-                new Fix((pattern & 4) == 0 ? 1 : -1) * baseDelta);
-            velocity.RotationAxis = Vector3.Up;
-            velocity.RotationAngleDelta = Fix.Zero;
-            velocity.YawDelta = frameFactor;
-            velocity.PitchDelta = frameFactor / new Fix(2);
-            velocity.RollDelta = Fix.Zero;
-            visited++;
+            _velocities = velocities;
+            _frameFactor = frameFactor;
+            _baseDelta = baseDelta;
         }
 
-        LastVisited = visited;
+        public void Execute(FilterChunk chunk)
+        {
+            foreach (Entity entity in chunk.Entities)
+            {
+                ref Velocity velocity = ref _velocities.Get(entity);
+                int pattern = entity.Id & 7;
+                velocity.PositionDelta = new Vector3(
+                    new Fix((pattern & 1) == 0 ? 1 : -1) * _baseDelta,
+                    new Fix((pattern & 2) == 0 ? 1 : 0) * _frameFactor,
+                    new Fix((pattern & 4) == 0 ? 1 : -1) * _baseDelta);
+                velocity.RotationAxis = Vector3.Up;
+                velocity.RotationAngleDelta = Fix.Zero;
+                velocity.YawDelta = _frameFactor;
+                velocity.PitchDelta = _frameFactor / new Fix(2);
+                velocity.RollDelta = Fix.Zero;
+            }
+        }
     }
 }
 

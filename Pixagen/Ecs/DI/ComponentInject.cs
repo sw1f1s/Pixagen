@@ -2,25 +2,31 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 
-namespace Pixagen.Ecs.DI {
-    public struct ComponentInject<T> : IDataInject where T : struct, IComponent {
+namespace Pixagen.Ecs.DI
+{
+    public struct ComponentInject<T> : IDataInject where T : struct, IComponent
+    {
         private World _world;
         private ComponentStorage<T> _storage;
 
-        public ComponentInject(IWorld world) {
+        public ComponentInject(IWorld world)
+        {
             _world = world as World
                 ?? throw new InvalidOperationException($"{nameof(ComponentInject<T>)} requires {nameof(World)}.");
             _storage = _world.GetComponentStorage<T>();
         }
 
-        void IDataInject.Fill(ISystems systems) {
+        void IDataInject.Fill(ISystems systems)
+        {
             this = new ComponentInject<T>(systems.World);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly bool Has(Entity entity) {
+        public readonly bool Has(Entity entity)
+        {
 #if DEBUG
-            if (entity != Entity.Empty && !_world.EntityIsAlive(entity)) {
+            if (entity != Entity.Empty && !_world.EntityIsAlive(entity))
+            {
                 throw new Exception($"{entity} is dead.");
             }
 #endif
@@ -29,9 +35,11 @@ namespace Pixagen.Ecs.DI {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [UnscopedRef]
-        public readonly ref T Get(Entity entity) {
+        public readonly ref T Get(Entity entity)
+        {
 #if DEBUG
-            if (!_world.EntityIsAlive(entity)) {
+            if (!_world.EntityIsAlive(entity))
+            {
                 throw new Exception($"{entity} is dead.");
             }
 #endif
@@ -40,9 +48,11 @@ namespace Pixagen.Ecs.DI {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [UnscopedRef]
-        public readonly ref T Set(Entity entity) {
+        public readonly ref T Set(Entity entity)
+        {
 #if DEBUG
-            if (!_world.EntityIsAlive(entity)) {
+            if (!_world.EntityIsAlive(entity))
+            {
                 throw new Exception($"{entity} is dead.");
             }
 #endif
@@ -51,8 +61,10 @@ namespace Pixagen.Ecs.DI {
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         [UnscopedRef]
-        public readonly ref T GetOrSet(Entity entity) {
-            if (_storage.HasFast(entity)) {
+        public readonly ref T GetOrSet(Entity entity)
+        {
+            if (_storage.HasFast(entity))
+            {
                 return ref _storage.GetFast(entity);
             }
 
@@ -60,9 +72,11 @@ namespace Pixagen.Ecs.DI {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Entity Add(Entity entity, in T component) {
+        public readonly Entity Add(Entity entity, in T component)
+        {
 #if DEBUG
-            if (!_world.EntityIsAlive(entity)) {
+            if (!_world.EntityIsAlive(entity))
+            {
                 throw new Exception($"{entity} is dead.");
             }
 #endif
@@ -71,9 +85,11 @@ namespace Pixagen.Ecs.DI {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly Entity Replace(Entity entity, in T component) {
+        public readonly Entity Replace(Entity entity, in T component)
+        {
 #if DEBUG
-            if (!_world.EntityIsAlive(entity)) {
+            if (!_world.EntityIsAlive(entity))
+            {
                 throw new Exception($"{entity} is dead.");
             }
 #endif
@@ -82,9 +98,11 @@ namespace Pixagen.Ecs.DI {
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public readonly void Remove(Entity entity) {
+        public readonly void Remove(Entity entity)
+        {
 #if DEBUG
-            if (!_world.EntityIsAlive(entity)) {
+            if (!_world.EntityIsAlive(entity))
+            {
                 throw new Exception($"{entity} is dead.");
             }
 #endif

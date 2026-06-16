@@ -1,3 +1,4 @@
-namespace Pixagen.Ecs.Runtime {
-    public interface IComponent { }   
+namespace Pixagen.Ecs.Runtime
+{
+    public interface IComponent { }
 }

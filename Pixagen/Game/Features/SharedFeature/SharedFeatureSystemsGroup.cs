@@ -8,12 +8,12 @@ public sealed class SharedFeatureSystemsGroup : IGroupSystem
 {
     public string GroupName => nameof(SharedFeatureSystemsGroup);
     public bool State => true;
-    
-    public object[] Injects { get; } = 
+
+    public object[] Injects { get; } =
     [
         new EntityStateHelper()
     ];
-    
+
     public ISystem[] Systems { get; } =
     [
         new EntityDisableTriggerSystem(),

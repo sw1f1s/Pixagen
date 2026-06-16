@@ -1,3 +1,4 @@
-namespace Pixagen.Ecs.Runtime {
+namespace Pixagen.Ecs.Runtime
+{
     public interface IOneTickComponent { }
 }

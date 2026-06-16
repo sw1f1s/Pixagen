@@ -8,12 +8,12 @@ public sealed class FPSCharacterFeatureSystemsGroup : IGroupSystem
 {
     public string GroupName => nameof(FPSCharacterFeatureSystemsGroup);
     public bool State => true;
-    
-    public object[] Injects { get; } = 
+
+    public object[] Injects { get; } =
     [
         new FPSCharacterHelper()
     ];
-    
+
     public ISystem[] Systems =>
     [
         new FPSCharacterInputSystem(),

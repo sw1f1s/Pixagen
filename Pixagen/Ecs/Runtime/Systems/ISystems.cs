@@ -1,8 +1,10 @@
 using System;
 using System.Collections.Generic;
 
-namespace Pixagen.Ecs.Runtime {
-    public interface ISystems : IDisposable {
+namespace Pixagen.Ecs.Runtime
+{
+    public interface ISystems : IDisposable
+    {
         event Action<SystemExecutionException> SystemException;
 
         IWorld World { get; }
@@ -14,5 +16,5 @@ namespace Pixagen.Ecs.Runtime {
 
         void SetActiveGroup(string groupName, bool value);
         bool IsActiveGroup(string groupName);
-    }   
+    }
 }

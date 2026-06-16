@@ -19,7 +19,7 @@ public sealed class FPSCharacterHelper
     private readonly ComponentInject<Collider> _colliders = default;
     private readonly ComponentInject<Camera> _cameras = default;
     private readonly ComponentInject<FPSCharacterCamera> _fpsCameras = default;
-    
+
     public Entity Create()
     {
         return Create(new FPSCharacterCreateOptions());

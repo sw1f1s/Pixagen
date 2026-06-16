@@ -17,7 +17,7 @@ public sealed class PhysicsWorld : IDisposable, IDisposeInject
 
     private readonly PhysicsMaterialStore _materials = new();
     private bool _disposed;
-    
+
     public BufferPool Pool { get; }
 
     public Simulation Simulation { get; }

@@ -17,7 +17,7 @@ public sealed class SceneManager
     private readonly List<LoadedScene> _loadedScenes = new();
 
     public IReadOnlyList<LoadedScene> LoadedScenes => _loadedScenes;
-    
+
     public LoadedScene AddScene(SceneDefinition scene)
     {
         return AddScene(_resources.Value.LoadSceneResources(scene));

@@ -1,8 +1,10 @@
 using System;
 using System.Runtime.CompilerServices;
 
-namespace Pixagen.Ecs.Runtime {
-    public readonly struct Entity : IEquatable<Entity> {
+namespace Pixagen.Ecs.Runtime
+{
+    public readonly struct Entity : IEquatable<Entity>
+    {
         private const int IdBits = 32;
         private const int GenBits = 24;
         private const int WorldIdBits = 8;
@@ -22,52 +24,63 @@ namespace Pixagen.Ecs.Runtime {
         public int Gen => (int)((RawValue >> GenShift) & GenMask) - 1;
         public byte WorldId => (byte)((RawValue >> WorldIdShift) & WorldIdMask);
 
-        internal Entity(int id, int gen, byte worldId) {
+        internal Entity(int id, int gen, byte worldId)
+        {
             _value = Pack(id, gen, worldId);
         }
-        
-        [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        internal Entity IncreaseGen() => 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Entity IncreaseGen() =>
             new Entity(Id, checked(Gen + 1), WorldId);
-        
-        [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        internal Entity ResetGen() => 
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        internal Entity ResetGen() =>
             new Entity(Id, 0, WorldId);
 
-        public override bool Equals(object? obj) {
+        public override bool Equals(object? obj)
+        {
             return obj is Entity other && Equals(other);
         }
 
-        public bool Equals(Entity other) {
+        public bool Equals(Entity other)
+        {
             return _value == other._value;
         }
 
-        public override int GetHashCode() {
+        public override int GetHashCode()
+        {
             return _value.GetHashCode();
         }
 
-        public static bool operator ==(Entity left, Entity right) {
+        public static bool operator ==(Entity left, Entity right)
+        {
             return left.Equals(right);
         }
 
-        public static bool operator !=(Entity left, Entity right) {
+        public static bool operator !=(Entity left, Entity right)
+        {
             return !(left == right);
         }
 
-        public override string ToString() {
+        public override string ToString()
+        {
             return $"Entity[{Id}|{Gen}|{WorldId}]";
         }
 
-        private static long Pack(int id, int gen, byte worldId) {
-            if (id == -1 && gen == -1 && worldId == 0) {
+        private static long Pack(int id, int gen, byte worldId)
+        {
+            if (id == -1 && gen == -1 && worldId == 0)
+            {
                 return 0;
             }
 
-            if (id < 0) {
+            if (id < 0)
+            {
                 throw new ArgumentOutOfRangeException(nameof(id), id, "Entity id must be non-negative.");
             }
 
-            if (gen < 0 || gen > MaxGen) {
+            if (gen < 0 || gen > MaxGen)
+            {
                 throw new ArgumentOutOfRangeException(nameof(gen), gen, $"Entity generation must be between 0 and {MaxGen}.");
             }
 
@@ -80,5 +93,5 @@ namespace Pixagen.Ecs.Runtime {
 
             return unchecked((long)packed);
         }
-    }   
+    }
 }

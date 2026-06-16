@@ -2,8 +2,10 @@ using System;
 using System.Collections.Generic;
 using Pixagen.Ecs.Collections;
 
-namespace Pixagen.Ecs.Runtime {
-    public interface IWorld : IDisposable {
+namespace Pixagen.Ecs.Runtime
+{
+    public interface IWorld : IDisposable
+    {
         byte Id { get; }
         Options Options { get; }
         internal bool IsAlive { get; }
@@ -17,7 +19,7 @@ namespace Pixagen.Ecs.Runtime {
         event Action<IWorld, Entity, Type> OnRemoveComponent;
         IEnumerable<Entity> AllEntities();
 #endif
-        
+
         Entity CreateEntity<T>() where T : struct, IComponent;
         internal Entity CreateEntity(int id, int gen);
         internal bool EntityIsAlive(in Entity entity);
@@ -27,7 +29,7 @@ namespace Pixagen.Ecs.Runtime {
 
         internal bool HasComponent<T>(in Entity entity) where T : struct, IComponent;
         internal ref T GetComponent<T>(in Entity entity) where T : struct, IComponent;
-        
+
         internal void AddComponent<T>(in Entity entity, in T component) where T : struct, IComponent;
         internal void ReplaceComponent<T>(in Entity entity, in T component) where T : struct, IComponent;
         internal ref T SetComponent<T>(in Entity entity) where T : struct, IComponent;
@@ -37,8 +39,8 @@ namespace Pixagen.Ecs.Runtime {
         internal ComponentStorage<T> GetComponentStorage<T>() where T : struct, IComponent;
         internal IComponentStorage GetComponentStorage(int componentId);
         internal bool HasComponentStorage(int componentId);
-        
+
         Filter GetFilter(FilterMask mask);
         void Clear();
-    }   
+    }
 }

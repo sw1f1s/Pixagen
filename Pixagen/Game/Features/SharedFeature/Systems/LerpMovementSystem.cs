@@ -1,14 +1,11 @@
-using Pixagen.Core.App;
-using Pixagen.Core.Input;
-using Pixagen.Core.Performance;
-using Pixagen.Core.Runtime;
+using System;
 using Pixagen.Core.Timing;
+using Pixagen.Ecs.DI;
+using Pixagen.Ecs.Runtime;
 using Pixagen.Game.Features.PhysicsFeature.Components;
 using Pixagen.Game.Features.RenderFeature.Components;
 using Pixagen.Game.Features.SharedFeature.Components;
 using Pixagen.Game.Features.SharedFeature.Helper;
-using Pixagen.Ecs.Runtime;
-using Pixagen.Ecs.DI;
 
 namespace Pixagen.Game.Features.SharedFeature.Systems;
 
@@ -25,21 +22,13 @@ public sealed class LerpMovementSystem : IUpdateSystem
     public void Update()
     {
         Fix dt = _time.Value.DeltaTime;
-
-        foreach (Entity entity in _movingEntities.Value)
-        {
-            if (!_entityState.Value.IsEnabled(entity) || IsPhysicsBodyNotMovedByShared(entity))
-            {
-                continue;
-            }
-
-            ref Transform transform = ref _transforms.Get(entity);
-            ref Velocity velocity = ref _velocities.Get(entity);
-            ref LerpMovement movement = ref _movements.Get(entity);
-
-            Vector3 target = GetTargetPosition(ref movement, dt);
-            velocity.PositionDelta += target - transform.Position;
-        }
+        _movingEntities.Value.ForEachChunk(new ChunkJob(
+            _entityState,
+            _transforms,
+            _velocities,
+            _movements,
+            _rigidBodies,
+            dt));
     }
 
     private static Vector3 GetTargetPosition(ref LerpMovement movement, Fix dt)
@@ -83,5 +72,54 @@ public sealed class LerpMovementSystem : IUpdateSystem
     private bool IsPhysicsBodyNotMovedByShared(Entity entity)
     {
         return _rigidBodies.Has(entity) && _rigidBodies.Get(entity).Kind != PhysicsBodyKind.Kinematic;
+    }
+
+    private readonly struct ChunkJob : IFilterChunkProcessor
+    {
+        private readonly CustomInject<EntityStateHelper> _entityState;
+        private readonly ComponentInject<Transform> _transforms;
+        private readonly ComponentInject<Velocity> _velocities;
+        private readonly ComponentInject<LerpMovement> _movements;
+        private readonly ComponentInject<RigidBody> _rigidBodies;
+        private readonly Fix _dt;
+
+        public ChunkJob(
+            CustomInject<EntityStateHelper> entityState,
+            ComponentInject<Transform> transforms,
+            ComponentInject<Velocity> velocities,
+            ComponentInject<LerpMovement> movements,
+            ComponentInject<RigidBody> rigidBodies,
+            Fix dt)
+        {
+            _entityState = entityState;
+            _transforms = transforms;
+            _velocities = velocities;
+            _movements = movements;
+            _rigidBodies = rigidBodies;
+            _dt = dt;
+        }
+
+        public void Execute(FilterChunk chunk)
+        {
+            foreach (Entity entity in chunk.Entities)
+            {
+                if (!_entityState.Value.IsEnabled(entity) || IsPhysicsBodyNotMovedByShared(entity))
+                {
+                    continue;
+                }
+
+                ref Transform transform = ref _transforms.Get(entity);
+                ref Velocity velocity = ref _velocities.Get(entity);
+                ref LerpMovement movement = ref _movements.Get(entity);
+
+                Vector3 target = GetTargetPosition(ref movement, _dt);
+                velocity.PositionDelta += target - transform.Position;
+            }
+        }
+
+        private bool IsPhysicsBodyNotMovedByShared(Entity entity)
+        {
+            return _rigidBodies.Has(entity) && _rigidBodies.Get(entity).Kind != PhysicsBodyKind.Kinematic;
+        }
     }
 }

@@ -4,11 +4,14 @@ using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 using static Pixagen.Tests.TestSupport.EcsTestAccess;
 
-namespace Pixagen.Tests.Ecs {
+namespace Pixagen.Tests.Ecs
+{
     [TestFixture]
-    public class WorldTestDI {
+    public class WorldTestDI
+    {
         [Test]
-        public void Run_DI() {
+        public void Run_DI()
+        {
             var world = WorldBuilder.Build();
             var systems = new Systems(world);
             systems
@@ -16,15 +19,16 @@ namespace Pixagen.Tests.Ecs {
                 .Inject(new TestData());
 
             CreateFilterEntities(world);
-            
+
             systems.Update();
-            
+
             systems.Dispose();
             world.Dispose();
         }
 
         [Test]
-        public void Run_GroupInjects() {
+        public void Run_GroupInjects()
+        {
             var world = WorldBuilder.Build();
             var systems = new Systems(world);
             systems
@@ -40,7 +44,8 @@ namespace Pixagen.Tests.Ecs {
         }
 
         [Test]
-        public void Run_GroupHelperReceivesDiAndIsInjectedIntoSystem() {
+        public void Run_GroupHelperReceivesDiAndIsInjectedIntoSystem()
+        {
             var world = WorldBuilder.Build();
             var systems = new Systems(world);
             var group = new TestHelperGroup();
@@ -60,7 +65,8 @@ namespace Pixagen.Tests.Ecs {
         }
 
         [Test]
-        public void Run_PlainServiceFieldIsNotInjected() {
+        public void Run_PlainServiceFieldIsNotInjected()
+        {
             var world = WorldBuilder.Build();
             var systems = new Systems(world);
             var system = new TestPlainServiceFieldSystem();
@@ -77,7 +83,8 @@ namespace Pixagen.Tests.Ecs {
         }
 
         [Test]
-        public void Run_GroupDisposeInjectsOnSystemsDispose() {
+        public void Run_GroupDisposeInjectsOnSystemsDispose()
+        {
             var world = WorldBuilder.Build();
             var systems = new Systems(world);
             var group = new TestDisposeGroup();
@@ -91,33 +98,37 @@ namespace Pixagen.Tests.Ecs {
             world.Dispose();
         }
 
-        private static void CreateFilterEntities(IWorld world) {
+        private static void CreateFilterEntities(IWorld world)
+        {
             var entity1 = world.CreateEntity<IsTestEntity>();
             Access(entity1).GetOrSet<Component1>();
             Access(entity1).GetOrSet<Component2>();
             Access(entity1).GetOrSet<Component3>();
-            
+
             var entity2 = world.CreateEntity<IsTestEntity>();
             Access(entity2).GetOrSet<Component1>();
             Access(entity2).GetOrSet<Component2>();
-            
+
             var entity3 = world.CreateEntity<IsTestEntity>();
             Access(entity3).GetOrSet<Component1>();
         }
-        
+
         [OneTimeTearDown]
-        public void Cleanup() {
+        public void Cleanup()
+        {
             WorldBuilder.AllDestroy();
         }
-    }   
-    
-    public sealed class TestInjectSystem : IUpdateSystem {
+    }
+
+    public sealed class TestInjectSystem : IUpdateSystem
+    {
         private readonly WorldInject _world = default;
         private readonly FilterInject<Include<Component1, Component2>, Exclude<Component3>> _filterInject = default;
         private readonly SystemsInject _systemsInject = default;
         private readonly CustomInject<TestData> _testData = default;
-        
-        public void Update() {
+
+        public void Update()
+        {
             Assert.That(_world.Value, Is.Not.Null);
             Assert.That(_filterInject.Value, Is.Not.Null);
             Assert.That(_filterInject.Value.GetCount(), Is.EqualTo(1));
@@ -126,14 +137,16 @@ namespace Pixagen.Tests.Ecs {
         }
     }
 
-    public sealed class TestInjectGroup : IGroupSystem {
+    public sealed class TestInjectGroup : IGroupSystem
+    {
         public string GroupName => nameof(TestInjectGroup);
         public bool State => true;
         public object[] Injects => [new TestData()];
         public ISystem[] Systems { get; } = [new TestInjectSystem()];
     }
 
-    public sealed class TestHelperGroup : IGroupSystem {
+    public sealed class TestHelperGroup : IGroupSystem
+    {
         public TestDiHelper Helper { get; } = new TestDiHelper();
         private readonly TestData _data = new TestData { Value1 = 11 };
         public string GroupName => nameof(TestHelperGroup);
@@ -142,7 +155,8 @@ namespace Pixagen.Tests.Ecs {
         public ISystem[] Systems { get; } = [new TestHelperSystem()];
     }
 
-    public sealed class TestDiHelper : IAfterInject {
+    public sealed class TestDiHelper : IAfterInject
+    {
         private readonly WorldInject _world = default;
         private readonly ComponentInject<Component1> _components = default;
         private readonly CustomInject<TestData> _data = default;
@@ -150,36 +164,43 @@ namespace Pixagen.Tests.Ecs {
         public bool AfterInjected { get; private set; }
         public Entity Created { get; private set; }
 
-        public void AfterInject() {
+        public void AfterInject()
+        {
             AfterInjected = _world.Value is not null && _data.Value is not null;
         }
 
-        public Entity Create() {
+        public Entity Create()
+        {
             Created = _world.Create<IsTestEntity>();
             _components.Add(Created, new Component1(_data.Value.Value1));
             return Created;
         }
     }
 
-    public sealed class TestHelperSystem : IInitSystem {
+    public sealed class TestHelperSystem : IInitSystem
+    {
         private readonly CustomInject<TestDiHelper> _helper = default;
 
-        public void Init() {
+        public void Init()
+        {
             _helper.Value.Create();
         }
     }
 
-    public sealed class TestPlainServiceFieldSystem : IInitSystem {
+    public sealed class TestPlainServiceFieldSystem : IInitSystem
+    {
         private readonly TestData _data = default!;
 
         public bool WasInjected { get; private set; }
 
-        public void Init() {
+        public void Init()
+        {
             WasInjected = _data is not null;
         }
     }
 
-    public sealed class TestDisposeGroup : IGroupSystem {
+    public sealed class TestDisposeGroup : IGroupSystem
+    {
         public TestDisposeInject DisposeInject { get; } = new TestDisposeInject();
         public string GroupName => nameof(TestDisposeGroup);
         public bool State => true;
@@ -187,15 +208,18 @@ namespace Pixagen.Tests.Ecs {
         public ISystem[] Systems { get; } = [];
     }
 
-    public sealed class TestDisposeInject : IDisposeInject {
+    public sealed class TestDisposeInject : IDisposeInject
+    {
         public bool Disposed { get; private set; }
 
-        public void DisposeInject() {
+        public void DisposeInject()
+        {
             Disposed = true;
         }
     }
 
-    public class TestData {
+    public class TestData
+    {
         public int Value1;
         public float Value2;
         public string Value3 = string.Empty;

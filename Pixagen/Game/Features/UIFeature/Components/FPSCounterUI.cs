@@ -7,7 +7,7 @@ public struct FPSCounterUI : IComponent
     public FPSCounterUI()
     {
     }
-    
+
     public FPSCounterUI(Fix updateInterval)
     {
     }
