@@ -13,8 +13,11 @@ public readonly record struct RaycastComputeRequest(
     int Height,
     float MaxDistance,
     ShadowQuality ShadowQuality,
+    float ShadowSoftness,
     RayBuilder RayBuilder,
     DirectionalLight Light,
+    RaycastTileBins TileBins,
+    RaycastShadowBins ShadowBins,
     RenderPrimitiveBatch StaticPrimitives,
     RenderPrimitiveBatch DynamicPrimitives);
 

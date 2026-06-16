@@ -89,6 +89,19 @@ public sealed class ResourceManagerTests
     }
 
     [Fact]
+    public void ResourceManager_LoadStartupSceneWithResources_UsesDefaultSceneFileWhenPathIsMissing()
+    {
+        using var resources = new ResourceManager();
+        string defaultPath = resources.ResolveStartupScenePath(null) ??
+            throw new InvalidOperationException("Default scene file is expected to exist in test output.");
+
+        SceneResourceScope scope = resources.LoadStartupSceneWithResources(null);
+
+        Assert.Equal("default", scope.SceneId);
+        Assert.True(resources.IsSceneLoaded(defaultPath));
+    }
+
+    [Fact]
     public void ResourceManager_LoadStartupSceneWithResources_ResolvesContentScenePath()
     {
         using var resources = new ResourceManager();

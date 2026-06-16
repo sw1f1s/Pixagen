@@ -3,6 +3,7 @@ using System.Runtime;
 using System.Runtime.InteropServices;
 using Pixagen.Ecs.DI;
 using Pixagen.Game.Features.RenderFeature;
+using Pixagen.Game.Features.ResourceFeature.Runtime;
 using Pixagen.Rendering;
 
 namespace Pixagen.Game.Features.DebugFeature.Systems;
@@ -14,6 +15,7 @@ public sealed class StartupLogSystem : IInitSystem
     private readonly CustomInject<RenderBackendOptions> _backendOptions = default;
     private readonly CustomInject<RenderSettings> _renderSettings = default;
     private readonly CustomInject<IRenderBackend> _renderBackend = default;
+    private readonly CustomInject<ResourceManager> _resources = default;
 
     public void Init()
     {
@@ -36,8 +38,8 @@ public sealed class StartupLogSystem : IInitSystem
         debug.Log($"Window: {backendOptions.WindowWidth}x{backendOptions.WindowHeight}; fullscreen {backendOptions.Fullscreen}; cell {backendOptions.CellPixelSize}px");
         debug.Log($"Input: capture mouse {backendOptions.CaptureMouse}; show cursor {backendOptions.ShowCursor}");
         debug.Log($"App: target FPS {options.TargetFps}; auto resize {options.AutoResize}; run single frame {options.RunSingleFrame}");
-        debug.Log($"Scene: {options.ScenePath ?? "<default>"}");
-        debug.Log($"Render: max internal {renderSettings.MaxInternalResolution.Width}x{renderSettings.MaxInternalResolution.Height}; scale {renderSettings.RenderScaleMode}; shadows {renderSettings.ShadowQuality}");
+        debug.Log($"Scene: {ResolveSceneLogValue(options)}");
+        debug.Log($"Render: max internal {renderSettings.MaxInternalResolution.Width}x{renderSettings.MaxInternalResolution.Height}; scale {renderSettings.RenderScaleMode}; shadows {renderSettings.ShadowQuality}; softness {renderSettings.ShadowSoftness}");
         debug.Log($"Distances: draw {renderSettings.DrawDistance}; shadows {renderSettings.ShadowRenderDistance}");
     }
 
@@ -51,6 +53,12 @@ public sealed class StartupLogSystem : IInitSystem
         }
 
         return assembly.GetName().Version?.ToString() ?? "unknown";
+    }
+
+    private string ResolveSceneLogValue(EngineOptions options)
+    {
+        string? path = _resources.Value.ResolveStartupScenePath(options.ScenePath);
+        return path ?? "<generated default>";
     }
 
     private static string FormatBytes(long bytes)

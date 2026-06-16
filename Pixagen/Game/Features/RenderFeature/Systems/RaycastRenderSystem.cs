@@ -30,6 +30,8 @@ public sealed class RaycastRenderSystem : IUpdateSystem
     private readonly RenderFrustumCuller _frustumCuller = new();
     private readonly RenderPrimitiveBatch _visibleStaticPrimitives = new();
     private readonly RenderPrimitiveBatch _visibleDynamicPrimitives = new();
+    private readonly RaycastTileBinBuilder _tileBinBuilder = new();
+    private readonly RaycastShadowBinBuilder _shadowBinBuilder = new();
 
     public void Update()
     {
@@ -40,7 +42,7 @@ public sealed class RaycastRenderSystem : IUpdateSystem
         if (cameraEntity == Entity.Empty)
         {
             buffer.Clear(FrameCell.Transparent);
-            RecordRenderStats(RenderPrimitiveBatch.Empty, RenderPrimitiveBatch.Empty);
+            RecordRenderStats(RenderPrimitiveBatch.Empty, RenderPrimitiveBatch.Empty, ShadowQuality.Off);
             return;
         }
 
@@ -54,12 +56,6 @@ public sealed class RaycastRenderSystem : IUpdateSystem
         DirectionalLight light = GetLight();
         float maxDistance = ResolveDrawDistance(settings, camera);
         float shadowRenderDistance = ResolveShadowRenderDistance(settings);
-        RayBuilder rayBuilder = RayBuilder.Create(
-            internalResolution.Width,
-            internalResolution.Height,
-            transform.Position,
-            basis,
-            camera);
         RenderViewFrustum frustum = RenderViewFrustum.Create(
             internalResolution.Width,
             internalResolution.Height,
@@ -73,15 +69,61 @@ public sealed class RaycastRenderSystem : IUpdateSystem
 
         RenderPrimitiveBatch staticPrimitives = _visibleStaticPrimitives;
         RenderPrimitiveBatch dynamicPrimitives = _visibleDynamicPrimitives;
-        RecordRenderStats(staticPrimitives, dynamicPrimitives);
-        ShadowQuality shadowQuality = settings.ShadowQuality;
+        ShadowQuality shadowQuality = light.CastsShadows ? settings.ShadowQuality : ShadowQuality.Off;
+        float shadowSoftness = ResolveShadowSoftness(settings);
+        RenderResolution binnedResolution = internalResolution;
+        RaycastTileBins tileBins = _tileBinBuilder.Build(
+            binnedResolution,
+            transform.Position,
+            basis,
+            camera,
+            staticPrimitives,
+            dynamicPrimitives);
+        RaycastShadowBins shadowBins = _shadowBinBuilder.Build(
+            binnedResolution,
+            light,
+            staticPrimitives,
+            dynamicPrimitives);
+        RaycastWorkloadBudgetResult budget = RaycastWorkloadBudget.Limit(
+            internalResolution,
+            shadowQuality,
+            tileBins.EstimatedPrimaryTriangleTests,
+            EstimateShadowTriangleTests(shadowBins, shadowSoftness));
+        internalResolution = budget.Resolution;
+        shadowQuality = budget.ShadowQuality;
+        RayBuilder rayBuilder = RayBuilder.Create(
+            internalResolution.Width,
+            internalResolution.Height,
+            transform.Position,
+            basis,
+            camera);
+        if (internalResolution != binnedResolution)
+        {
+            tileBins = _tileBinBuilder.Build(
+                internalResolution,
+                transform.Position,
+                basis,
+                camera,
+                staticPrimitives,
+                dynamicPrimitives);
+            shadowBins = _shadowBinBuilder.Build(
+                internalResolution,
+                light,
+                staticPrimitives,
+                dynamicPrimitives);
+        }
+
+        RecordRenderStats(staticPrimitives, dynamicPrimitives, shadowQuality);
         if (!TryRenderWithCompute(
                 buffer,
                 internalResolution,
                 maxDistance,
                 shadowQuality,
+                shadowSoftness,
                 rayBuilder,
                 light,
+                tileBins,
+                shadowBins,
                 staticPrimitives,
                 dynamicPrimitives))
         {
@@ -89,12 +131,19 @@ public sealed class RaycastRenderSystem : IUpdateSystem
         }
     }
 
-    private void RecordRenderStats(RenderPrimitiveBatch staticPrimitives, RenderPrimitiveBatch dynamicPrimitives)
+    private void RecordRenderStats(
+        RenderPrimitiveBatch staticPrimitives,
+        RenderPrimitiveBatch dynamicPrimitives,
+        ShadowQuality shadowQuality)
     {
         ResourceStats resourceStats = _resources.Value.GetStats();
+        int shadowTriangles = shadowQuality == ShadowQuality.Off
+            ? 0
+            : staticPrimitives.ShadowTriangles.Count + dynamicPrimitives.ShadowTriangles.Count;
+
         _performanceStats.Value.RecordRenderScene(new RenderPerformanceReport(
             staticPrimitives.Triangles.Count + dynamicPrimitives.Triangles.Count,
-            staticPrimitives.ShadowTriangles.Count + dynamicPrimitives.ShadowTriangles.Count,
+            shadowTriangles,
             resourceStats.TextureCount,
             resourceStats.TextureBytes));
     }
@@ -104,8 +153,11 @@ public sealed class RaycastRenderSystem : IUpdateSystem
         RenderResolution internalResolution,
         float maxDistance,
         ShadowQuality shadowQuality,
+        float shadowSoftness,
         RayBuilder rayBuilder,
         DirectionalLight light,
+        RaycastTileBins tileBins,
+        RaycastShadowBins shadowBins,
         RenderPrimitiveBatch staticPrimitives,
         RenderPrimitiveBatch dynamicPrimitives)
     {
@@ -114,8 +166,11 @@ public sealed class RaycastRenderSystem : IUpdateSystem
             internalResolution.Height,
             maxDistance,
             shadowQuality,
+            shadowSoftness,
             rayBuilder,
             light,
+            tileBins,
+            shadowBins,
             staticPrimitives,
             dynamicPrimitives);
 
@@ -227,6 +282,21 @@ public sealed class RaycastRenderSystem : IUpdateSystem
             : settings.DrawDistance;
 
         return MathF.Max(RenderMath.ToFloat(distance), RenderMath.Epsilon);
+    }
+
+    private static float ResolveShadowSoftness(RenderSettings settings)
+    {
+        return Math.Clamp(RenderMath.ToFloat(settings.ShadowSoftness), 0f, 0.25f);
+    }
+
+    private static double EstimateShadowTriangleTests(RaycastShadowBins shadowBins, float shadowSoftness)
+    {
+        return shadowBins.EstimatedShadowTriangleTests * ResolveFullShadowSampleCount(shadowSoftness);
+    }
+
+    private static int ResolveFullShadowSampleCount(float shadowSoftness)
+    {
+        return shadowSoftness > RenderMath.Epsilon ? 4 : 1;
     }
 
     private void SyncResourceCaches()

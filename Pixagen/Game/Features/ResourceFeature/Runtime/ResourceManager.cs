@@ -157,6 +157,18 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
         return _scenes.LoadAsync(path, cancellationToken);
     }
 
+    public string? ResolveStartupScenePath(string? path)
+    {
+        ThrowIfDisposed();
+        if (!string.IsNullOrWhiteSpace(path))
+        {
+            return ResourcePathResolver.NormalizeScenePath(path);
+        }
+
+        string defaultPath = ResourcePathResolver.ResolveDefaultScenePath();
+        return File.Exists(defaultPath) ? defaultPath : null;
+    }
+
     public SceneDefinition LoadDefaultScene()
     {
         ThrowIfDisposed();

@@ -20,4 +20,12 @@ public sealed class EngineOptionsTests
 
         Assert.Equal("Content/Scenes/default.scene.json", options.ScenePath);
     }
+
+    [Fact]
+    public void FromArgs_ReadsShadowSoftness()
+    {
+        EngineOptions options = EngineOptions.FromArgs(["--shadow-softness", "0.08"]);
+
+        Assert.Equal(Fix.FromDouble(0.08), options.RenderSettings.ShadowSoftness);
+    }
 }

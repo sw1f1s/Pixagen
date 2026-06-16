@@ -6,6 +6,7 @@ public sealed record RenderSettings(
     RenderResolution MaxInternalResolution,
     RenderScaleMode RenderScaleMode,
     ShadowQuality ShadowQuality,
+    Fix ShadowSoftness,
     Fix DrawDistance,
     Fix ShadowRenderDistance)
 {
@@ -13,6 +14,7 @@ public sealed record RenderSettings(
         new RenderResolution(480, 270),
         RenderScaleMode.FitToMax,
         ShadowQuality.Full,
+        Fix.FromDouble(0.035),
         Fix.FromDouble(256),
         Fix.FromDouble(256));
 }

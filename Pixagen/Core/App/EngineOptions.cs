@@ -59,6 +59,9 @@ public sealed class EngineOptions
                 ParseNullableEnum<RenderScaleMode>(args, "--scale-mode") ??
                 defaults.RenderScaleMode,
             ParseNullableEnum<ShadowQuality>(args, "--shadow-quality") ?? defaults.ShadowQuality,
+            ParseNullableFix(args, "--shadow-softness") ??
+                ParseNullableFix(args, "--soft-shadows") ??
+                defaults.ShadowSoftness,
             ParseNullableFix(args, "--draw-distance") ??
                 ParseNullableFix(args, "--render-distance") ??
                 ParseNullableFix(args, "--view-distance") ??
