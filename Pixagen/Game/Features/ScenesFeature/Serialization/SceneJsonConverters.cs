@@ -2,7 +2,6 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Pixagen.Game.Features.RenderFeature.Components;
-using Pixagen.Game.Features.SharedFeature.Components;
 using Pixagen.Rendering;
 
 namespace Pixagen.Game.Features.ScenesFeature.Serialization;

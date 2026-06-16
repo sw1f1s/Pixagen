@@ -76,6 +76,20 @@ namespace Pixagen.Ecs.Runtime
         }
     }
 
+    public class FilterMaskExclude<Exc1, Exc2, Exc3> : FilterMask
+        where Exc1 : struct, IComponent
+        where Exc2 : struct, IComponent
+        where Exc3 : struct, IComponent
+    {
+        public FilterMaskExclude()
+        {
+            _mainComponent = ComponentStorageIndex<Exc1>.StaticId;
+            _excludes.Set(ComponentStorageIndex<Exc1>.StaticId);
+            _excludes.Set(ComponentStorageIndex<Exc2>.StaticId);
+            _excludes.Set(ComponentStorageIndex<Exc3>.StaticId);
+        }
+    }
+
     public class FilterMask<Inc1> : FilterMask
             where Inc1 : struct, IComponent
     {

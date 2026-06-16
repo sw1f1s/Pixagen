@@ -1,6 +1,5 @@
 using BepuPhysics;
 using BepuPhysics.Collidables;
-using Pixagen.Ecs.Runtime;
 
 namespace Pixagen.Game.Features.PhysicsFeature.Components;
 

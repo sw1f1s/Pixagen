@@ -30,7 +30,7 @@ namespace Pixagen.Ecs.DI
         }
     }
 
-    public struct Include<Inc1> : IInclude
+    public readonly struct Include<Inc1> : IInclude
         where Inc1 : struct, IComponent
     {
         FilterMask IInclude.GetMask()
@@ -39,7 +39,7 @@ namespace Pixagen.Ecs.DI
         }
     }
 
-    public struct Include<Inc1, Inc2> : IInclude
+    public readonly struct Include<Inc1, Inc2> : IInclude
         where Inc1 : struct, IComponent
         where Inc2 : struct, IComponent
     {
@@ -49,7 +49,7 @@ namespace Pixagen.Ecs.DI
         }
     }
 
-    public struct Include<Inc1, Inc2, Inc3> : IInclude
+    public readonly struct Include<Inc1, Inc2, Inc3> : IInclude
         where Inc1 : struct, IComponent
         where Inc2 : struct, IComponent
         where Inc3 : struct, IComponent
@@ -60,7 +60,7 @@ namespace Pixagen.Ecs.DI
         }
     }
 
-    public struct Include<Inc1, Inc2, Inc3, Inc4> : IInclude
+    public readonly struct Include<Inc1, Inc2, Inc3, Inc4> : IInclude
         where Inc1 : struct, IComponent
         where Inc2 : struct, IComponent
         where Inc3 : struct, IComponent
@@ -72,7 +72,7 @@ namespace Pixagen.Ecs.DI
         }
     }
 
-    public struct Include<Inc1, Inc2, Inc3, Inc4, Inc5> : IInclude
+    public readonly struct Include<Inc1, Inc2, Inc3, Inc4, Inc5> : IInclude
         where Inc1 : struct, IComponent
         where Inc2 : struct, IComponent
         where Inc3 : struct, IComponent
@@ -85,7 +85,7 @@ namespace Pixagen.Ecs.DI
         }
     }
 
-    public struct Include<Inc1, Inc2, Inc3, Inc4, Inc5, Inc6> : IInclude
+    public readonly struct Include<Inc1, Inc2, Inc3, Inc4, Inc5, Inc6> : IInclude
         where Inc1 : struct, IComponent
         where Inc2 : struct, IComponent
         where Inc3 : struct, IComponent
@@ -99,7 +99,7 @@ namespace Pixagen.Ecs.DI
         }
     }
 
-    public struct Exclude<Exc1> : IExclude
+    public readonly struct Exclude<Exc1> : IExclude
         where Exc1 : struct, IComponent
     {
         FilterMask IExclude.GetMask()
@@ -108,13 +108,24 @@ namespace Pixagen.Ecs.DI
         }
     }
 
-    public struct Exclude<Exc1, Exc2> : IExclude
+    public readonly struct Exclude<Exc1, Exc2> : IExclude
         where Exc1 : struct, IComponent
         where Exc2 : struct, IComponent
     {
         FilterMask IExclude.GetMask()
         {
             return new FilterMaskExclude<Exc1, Exc2>();
+        }
+    }
+
+    public readonly struct Exclude<Exc1, Exc2, Exc3> : IExclude
+        where Exc1 : struct, IComponent
+        where Exc2 : struct, IComponent
+        where Exc3 : struct, IComponent
+    {
+        FilterMask IExclude.GetMask()
+        {
+            return new FilterMaskExclude<Exc1, Exc2, Exc3>();
         }
     }
 }

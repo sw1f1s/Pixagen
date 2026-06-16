@@ -1,10 +1,4 @@
-using Pixagen.Core.App;
-using Pixagen.Core.Input;
-using Pixagen.Core.Performance;
-using Pixagen.Core.Runtime;
-using Pixagen.Core.Timing;
 using Pixagen.Game.Features.PhysicsFeature.Runtime;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 
 namespace Pixagen.Game.Features.PhysicsFeature.Systems;

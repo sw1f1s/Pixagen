@@ -36,7 +36,7 @@ public sealed class UiOverlayScenario : IBenchmarkScenario
 
             if (i % 64 == 0)
             {
-                fpsCounters.Add(entity, new FPSCounterUI(Fix.One / new Fix(4)));
+                fpsCounters.Add(entity, new FPSCounterUI());
             }
 
             if (i % 128 == 0)

@@ -17,6 +17,7 @@ public sealed class EntityStateHelper
     private readonly ComponentInject<DisableNextTick> _disableNextTicks = default;
     private readonly ComponentInject<EnableOneTick> _enableTicks = default;
     private readonly ComponentInject<DisableOneTick> _disableTicks = default;
+    private readonly ComponentInject<DisabledInHierarchy> _disabledInHierarchy = default;
 
     public Entity CreateObject()
     {
@@ -37,37 +38,12 @@ public sealed class EntityStateHelper
 
     public bool IsEnabled(in Entity entity)
     {
-        Entity current = entity;
-        uint depth = 0;
-        uint maxDepth = _world.Value.Entities.Count + 1;
-
-        while (current != Entity.Empty && _world.IsAlive(current))
+        if (!IsAlive(entity) || _disabledInHierarchy.Has(entity) || IsOwnDisabled(entity))
         {
-            if (++depth > maxDepth)
-            {
-                return false;
-            }
-
-            if (_enableStates.Has(current) && !_enableStates.Get(current).Value)
-            {
-                return false;
-            }
-
-            if (!_parents.Has(current))
-            {
-                return true;
-            }
-
-            ref Parent parent = ref _parents.Get(current);
-            if (parent.Entity == Entity.Empty)
-            {
-                return true;
-            }
-
-            current = parent.Entity;
+            return false;
         }
 
-        return false;
+        return AreParentsEnabled(entity);
     }
 
     public bool AddChild(in Entity parent, in Entity child)
@@ -189,6 +165,8 @@ public sealed class EntityStateHelper
         {
             children.Entities.Add(child);
         }
+
+        RefreshDisabledInHierarchy(child);
         return true;
     }
 
@@ -203,13 +181,13 @@ public sealed class EntityStateHelper
         Entity oldParent = parent.Entity;
         parent.Entity = Entity.Empty;
 
-        if (!IsAlive(oldParent) || !_children.Has(oldParent))
+        if (IsAlive(oldParent) && _children.Has(oldParent))
         {
-            return false;
+            ref Children children = ref _children.Get(oldParent);
+            children.Entities.Remove(child);
         }
 
-        ref Children children = ref _children.Get(oldParent);
-        children.Entities.Remove(child);
+        RefreshDisabledInHierarchy(child);
         return true;
     }
 
@@ -233,7 +211,22 @@ public sealed class EntityStateHelper
             }
         }
 
+        if (removed)
+        {
+            RefreshDisabledInHierarchy(child);
+        }
+
         return removed;
+    }
+
+    public void RefreshDisabledInHierarchy(in Entity entity)
+    {
+        if (!IsAlive(entity))
+        {
+            return;
+        }
+
+        RefreshDisabledInHierarchy(entity, IsParentDisabled(entity));
     }
 
     private void SetParent(in Entity child, in Entity parent)
@@ -286,6 +279,94 @@ public sealed class EntityStateHelper
         }
 
         return false;
+    }
+
+    private bool AreParentsEnabled(in Entity entity)
+    {
+        Entity current = entity;
+        uint depth = 0;
+        uint maxDepth = _world.Value.Entities.Count + 1;
+
+        while (_parents.Has(current))
+        {
+            if (++depth > maxDepth)
+            {
+                return false;
+            }
+
+            ref Parent parent = ref _parents.Get(current);
+            current = parent.Entity;
+            if (current == Entity.Empty)
+            {
+                return true;
+            }
+
+            if (!IsAlive(current) || _disabledInHierarchy.Has(current) || IsOwnDisabled(current))
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private bool IsParentDisabled(in Entity entity)
+    {
+        if (!_parents.Has(entity))
+        {
+            return false;
+        }
+
+        ref Parent parent = ref _parents.Get(entity);
+        Entity parentEntity = parent.Entity;
+        return parentEntity != Entity.Empty &&
+               IsAlive(parentEntity) &&
+               (_disabledInHierarchy.Has(parentEntity) || IsOwnDisabled(parentEntity));
+    }
+
+    private bool IsOwnDisabled(in Entity entity)
+    {
+        return _enableStates.Has(entity) && !_enableStates.Get(entity).Value;
+    }
+
+    private void RefreshDisabledInHierarchy(Entity entity, bool parentDisabled)
+    {
+        if (!IsAlive(entity))
+        {
+            return;
+        }
+
+        bool disabled = parentDisabled || IsOwnDisabled(entity);
+        SetDisabledInHierarchy(entity, disabled);
+
+        if (!_children.Has(entity))
+        {
+            return;
+        }
+
+        ref Children children = ref _children.Get(entity);
+        for (int i = 0; i < children.Entities.Count; i++)
+        {
+            RefreshDisabledInHierarchy(children.Entities[i], disabled);
+        }
+    }
+
+    private void SetDisabledInHierarchy(Entity entity, bool disabled)
+    {
+        if (disabled)
+        {
+            if (!_disabledInHierarchy.Has(entity))
+            {
+                _disabledInHierarchy.Add(entity, new DisabledInHierarchy());
+            }
+
+            return;
+        }
+
+        if (_disabledInHierarchy.Has(entity))
+        {
+            _disabledInHierarchy.Remove(entity);
+        }
     }
 
     private void AddDestroyOneTick(in Entity entity, HashSet<Entity> visited)
@@ -352,6 +433,8 @@ public sealed class EntityStateHelper
         {
             _spawnTicks.Add(copy, new SpawnOneTick());
         }
+
+        RefreshDisabledInHierarchy(copy);
     }
 
     private void ResetInfo(in Entity entity)

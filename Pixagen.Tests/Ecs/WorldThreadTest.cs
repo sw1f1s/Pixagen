@@ -1,7 +1,6 @@
 using System;
 using Assert = NUnit.Framework.Assert;
 using NUnit.Framework;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 using static Pixagen.Tests.TestSupport.EcsTestAccess;
 

@@ -1,4 +1,3 @@
-using Pixagen.Ecs.Runtime;
 
 namespace Pixagen.Game.Features.ScenesFeature.Serialization;
 

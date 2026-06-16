@@ -1,5 +1,4 @@
 using System.Text.Json.Serialization;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.Collections;
 
 namespace Pixagen.Game.Features.SharedFeature.Components;

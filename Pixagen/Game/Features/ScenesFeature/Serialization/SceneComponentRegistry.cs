@@ -1,6 +1,5 @@
 using System.Reflection;
 using Pixagen.Game.Features.ScenesFeature.Components;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 
 namespace Pixagen.Game.Features.ScenesFeature.Serialization;

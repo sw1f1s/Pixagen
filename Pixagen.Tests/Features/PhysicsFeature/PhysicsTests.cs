@@ -1,8 +1,6 @@
 using Pixagen.Game.Features.PhysicsFeature;
 using Pixagen.Game.Features.PhysicsFeature.Components;
-using Pixagen.Game.Features.SharedFeature.Components;
 using Pixagen.Game.Features.SharedFeature.Helper;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Tests.TestSupport;
 using static Pixagen.Tests.TestSupport.EcsTestAccess;
 

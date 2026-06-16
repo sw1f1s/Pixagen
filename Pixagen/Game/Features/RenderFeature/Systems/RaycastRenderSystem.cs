@@ -1,15 +1,8 @@
 using Pixagen.Game.Features.RenderFeature.Components;
 using Pixagen.Game.Features.RenderFeature.Raycasting;
 using Pixagen.Game.Features.ResourceFeature.Runtime;
-using Pixagen.Game.Features.SharedFeature.Components;
 using Pixagen.Rendering;
-using Pixagen.Core.App;
-using Pixagen.Core.Input;
-using Pixagen.Core.Performance;
-using Pixagen.Core.Runtime;
-using Pixagen.Core.Timing;
 using Pixagen.Game.Features.SharedFeature.Helper;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 using Float3 = System.Numerics.Vector3;
 

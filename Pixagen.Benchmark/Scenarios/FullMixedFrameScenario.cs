@@ -131,7 +131,7 @@ public sealed class FullMixedFrameScenario : IBenchmarkScenario
             if (i % 128 == 0)
             {
                 AddOrReplaceUi(entity, i, uiTransforms, texts);
-                fpsCounters.Add(entity, new FPSCounterUI(Fix.One / new Fix(4)));
+                fpsCounters.Add(entity, new FPSCounterUI());
             }
 
             if (i % 256 == 0)

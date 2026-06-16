@@ -1,5 +1,4 @@
-using Pixagen.Ecs.Runtime;
 
 namespace Pixagen.Game.Features.RenderFeature.Components;
 
-public struct IsStaticRender : IComponent;
+public readonly struct IsStaticRender : IComponent;

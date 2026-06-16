@@ -1,5 +1,4 @@
 using Pixagen.Game.Features.FPSCharacterFeature.Systems;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Game.Features.FPSCharacterFeature.Helper;
 
 namespace Pixagen.Game.Features.FPSCharacterFeature;

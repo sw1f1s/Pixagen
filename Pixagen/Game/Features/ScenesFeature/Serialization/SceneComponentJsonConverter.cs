@@ -1,6 +1,5 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using Pixagen.Ecs.Runtime;
 
 namespace Pixagen.Game.Features.ScenesFeature.Serialization;
 

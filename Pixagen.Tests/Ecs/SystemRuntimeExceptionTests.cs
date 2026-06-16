@@ -1,5 +1,4 @@
 using Pixagen.Core.Debugging;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Tests.TestSupport;
 
 namespace Pixagen.Tests.Ecs;

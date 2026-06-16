@@ -1,4 +1,3 @@
-using Pixagen.Ecs.Runtime;
 using static Pixagen.Tests.TestSupport.EcsTestAccess;
 
 namespace Pixagen.Tests.TestSupport;

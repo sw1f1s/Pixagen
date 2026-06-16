@@ -1,4 +1,3 @@
-using Pixagen.Ecs.Runtime;
 using Pixagen.Game.Features.DebugFeature.Systems;
 
 namespace Pixagen.Game.Features.DebugFeature;

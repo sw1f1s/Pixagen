@@ -1,7 +1,5 @@
-using Pixagen.Ecs.Runtime;
 using Pixagen.Game.Features.PhysicsFeature.Components;
 using Pixagen.Game.Features.RenderFeature.Components;
-using Pixagen.Game.Features.SharedFeature.Components;
 using Pixagen.Game.Features.UIFeature.Components;
 using Pixagen.Rendering;
 using FPSCharacterCameraComponent = Pixagen.Game.Features.FPSCharacterFeature.Components.FPSCharacterCamera;
@@ -163,7 +161,7 @@ public static class DefaultSceneFactory
                 new Info("ui-fps", "FPS Counter"),
                 new TransformUI(0, 0, order: 0),
                 new TextUI(string.Empty, PixelColor.FromRgb(240, 219, 86), 16),
-                new FPSCounterUI(Fix.One / F(4))
+                new FPSCounterUI()
             ]
         };
     }

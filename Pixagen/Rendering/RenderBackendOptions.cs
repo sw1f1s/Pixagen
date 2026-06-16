@@ -1,4 +1,3 @@
-using Pixagen.Core.App;
 
 namespace Pixagen.Rendering;
 

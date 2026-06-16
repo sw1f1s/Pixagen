@@ -1,5 +1,4 @@
 using Pixagen.Game.Features.PhysicsFeature.Systems;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Game.Features.PhysicsFeature.Runtime;
 
 namespace Pixagen.Game.Features.PhysicsFeature;

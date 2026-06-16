@@ -1,8 +1,6 @@
 using Pixagen.Game.Features.ScenesFeature.Components;
 using Pixagen.Game.Features.ScenesFeature.Serialization;
-using Pixagen.Game.Features.SharedFeature.Components;
 using Pixagen.Game.Features.SharedFeature.Helper;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 
 namespace Pixagen.Game.Features.ScenesFeature;
@@ -27,6 +25,7 @@ public sealed class SceneEntityFactory
             AddOrReplaceComponent(entity, component);
         }
 
+        _entityState.Value.RefreshDisabledInHierarchy(entity);
         return entity;
     }
 

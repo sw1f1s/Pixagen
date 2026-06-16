@@ -1,7 +1,6 @@
 using Pixagen.Game.Features.SharedFeature.Helper;
 using Pixagen.Game.Features.UIFeature.Components;
 using Pixagen.Rendering;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 
 namespace Pixagen.Game.Features.UIFeature.Systems;

@@ -1,5 +1,4 @@
 using System;
-using Pixagen.Ecs.Runtime;
 
 namespace Pixagen.Game.Features.SharedFeature.Components;
 

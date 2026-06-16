@@ -1,5 +1,4 @@
 using Pixagen.Game.Features.FreeCameraFeature.Systems;
-using Pixagen.Ecs.Runtime;
 
 namespace Pixagen.Game.Features.FreeCameraFeature;
 

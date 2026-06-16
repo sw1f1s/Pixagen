@@ -1,9 +1,7 @@
 using Pixagen.Game.Features.PhysicsFeature.Runtime;
 using Pixagen.Game.Features.RenderFeature.Raycasting;
-using Pixagen.Game.Features.SharedFeature.Components;
 using Pixagen.Game.Features.SharedFeature.Helper;
 using Pixagen.Game.Features.SharedFeature.Systems;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Tests.TestSupport;
 using static Pixagen.Tests.TestSupport.EcsTestAccess;
 

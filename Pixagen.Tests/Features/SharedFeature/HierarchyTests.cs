@@ -1,7 +1,6 @@
-using Pixagen.Game.Features.SharedFeature.Components;
 using Pixagen.Game.Features.SharedFeature.Helper;
 using Pixagen.Game.Features.SharedFeature.Systems;
-using Pixagen.Ecs.Runtime;
+using Pixagen.Game.Features.PhysicsFeature.Components;
 using Pixagen.Tests.TestSupport;
 using static Pixagen.Tests.TestSupport.EcsTestAccess;
 
@@ -117,13 +116,55 @@ public sealed class HierarchyTests
         transforms.Get(unrelated).Position = new Vector3(new Fix(10), Fix.Zero, Fix.Zero);
         context.State.AddChild(parent, child);
 
-        var systems = context.BuildSystems(new MovementSystem(), new HierarchyTransformSystem());
+        var systems = context.BuildSystems(new TransformVelocityIntegrationSystem(), new HierarchyTransformSystem());
         systems.Update();
 
         AssertEx.Equal(new Vector3(new Fix(5), Fix.Zero, Fix.One), Access(parent).Get<Transform>().Position);
         AssertEx.Equal(new Vector3(new Fix(5), new Fix(2), Fix.One), Access(child).Get<Transform>().Position);
         AssertEx.Equal(new Vector3(new Fix(10), Fix.Zero, Fix.Zero), Access(unrelated).Get<Transform>().Position);
         AssertEx.Equal(new Vector3(Fix.Zero, new Fix(2), Fix.Zero), Access(child).Get<LocalTransform>().Position);
+    }
+
+    [Fact]
+    public void TransformVelocityIntegrationSystem_RotatesDynamicRigidBodyButDoesNotMoveIt()
+    {
+        using var context = new EcsTestContext();
+        Entity entity = context.State.CreateObject();
+        Vector3 delta = new(new Fix(5), Fix.Zero, Fix.Zero);
+        Access(entity).Add(new Velocity
+        {
+            PositionDelta = delta,
+            YawDelta = Fix.One / new Fix(4)
+        });
+        Access(entity).Add(RigidBody.Dynamic(Fix.One));
+
+        var systems = context.BuildSystems(new TransformVelocityIntegrationSystem());
+        systems.Update();
+
+        AssertEx.Equal(Vector3.Zero, Access(entity).Get<Transform>().Position);
+        Assert.NotEqual(Quaternion.Identity, Access(entity).Get<Transform>().Rotation);
+        AssertEx.Equal(delta, Access(entity).Get<Velocity>().PositionDelta);
+        Assert.Equal(Fix.Zero, Access(entity).Get<Velocity>().YawDelta);
+    }
+
+    [Fact]
+    public void EntityEnableStateSyncSystem_RefreshesDirectIsEnableWritesBeforeMovement()
+    {
+        using var context = new EcsTestContext();
+        Entity parent = context.State.CreateObject();
+        Entity child = context.State.CreateObject();
+        context.State.AddChild(parent, child);
+        Access(parent).Add(new IsEnable(false));
+        Access(child).Add(new Velocity { PositionDelta = new Vector3(new Fix(5), Fix.Zero, Fix.Zero) });
+
+        var systems = context.BuildSystems(
+            new EntityEnableStateSyncSystem(),
+            new TransformVelocityIntegrationSystem());
+        systems.Update();
+
+        Assert.True(Access(parent).Has<DisabledInHierarchy>());
+        Assert.True(Access(child).Has<DisabledInHierarchy>());
+        AssertEx.Equal(Vector3.Zero, Access(child).Get<Transform>().Position);
     }
 
     [Fact]
@@ -138,5 +179,21 @@ public sealed class HierarchyTests
 
         Assert.False(context.State.IsEnabled(parent));
         Assert.False(context.State.IsEnabled(child));
+    }
+
+    [Fact]
+    public void MoveToParent_RefreshesDisabledInHierarchyCache()
+    {
+        using var context = new EcsTestContext();
+        Entity disabledParent = context.State.CreateObject();
+        Entity enabledParent = context.State.CreateObject();
+        Entity child = context.State.CreateObject();
+        Access(disabledParent).Add(new IsEnable(false));
+
+        Assert.True(context.State.AddChild(disabledParent, child));
+        Assert.True(Access(child).Has<DisabledInHierarchy>());
+
+        Assert.True(context.State.MoveToParent(child, enabledParent));
+        Assert.False(Access(child).Has<DisabledInHierarchy>());
     }
 }

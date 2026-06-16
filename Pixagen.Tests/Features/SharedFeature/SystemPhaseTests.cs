@@ -1,4 +1,3 @@
-using Pixagen.Ecs.Runtime;
 using Pixagen.Tests.TestSupport;
 
 namespace Pixagen.Tests.Features.SharedFeature;

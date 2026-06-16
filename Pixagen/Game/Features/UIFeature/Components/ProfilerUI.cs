@@ -1,5 +1,3 @@
-using Pixagen.Ecs.Runtime;
-
 namespace Pixagen.Game.Features.UIFeature.Components;
 
 public struct ProfilerUI : IComponent

@@ -1,4 +1,4 @@
 
 namespace Pixagen.Game.Features.SharedFeature.Components;
 
-public readonly struct DisableNextTick : IComponent;
+public readonly struct DisabledInHierarchy : IComponent;

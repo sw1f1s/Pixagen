@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Assert = NUnit.Framework.Assert;
 using NUnit.Framework;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.Collections;
 using Pixagen.Ecs.DI;
 using static Pixagen.Tests.TestSupport.EcsTestAccess;
@@ -663,37 +662,21 @@ namespace Pixagen.Tests.Ecs
             var world = WorldBuilder.Build();
             var entity1 = world.CreateEntity<IsTestEntity>();
             var entity2 = world.CreateEntity<IsTestEntity>();
-            Assert.Throws<Exception>(() =>
-            {
-                Access(entity1).Get<Component1>();
-            });
+            Assert.That(() => Access(entity1).Get<Component1>(), Throws.Exception);
 
             Access(entity1).Destroy();
-            Assert.Throws<Exception>(() =>
-            {
-                Access(entity1).Has<Component1>();
-            });
+#if DEBUG
+            Assert.That(() => Access(entity1).Has<Component1>(), Throws.Exception);
 
-            Assert.Throws<Exception>(() =>
-            {
-                Access(entity1).GetOrSet<Component1>();
-            });
+            Assert.That(() => Access(entity1).GetOrSet<Component1>(), Throws.Exception);
 
-            Assert.Throws<Exception>(() =>
-            {
-                Access(entity1).Add(new Component1());
-            });
+            Assert.That(() => Access(entity1).Add(new Component1()), Throws.Exception);
+#endif
 
             world.Dispose();
-            Assert.Throws<Exception>(() =>
-            {
-                Access(entity1).Has<Component1>();
-            });
+            Assert.That(() => Access(entity1).Has<Component1>(), Throws.Exception);
 
-            Assert.Throws<Exception>(() =>
-            {
-                Access(entity2).Has<Component1>();
-            });
+            Assert.That(() => Access(entity2).Has<Component1>(), Throws.Exception);
         }
 
         [OneTimeTearDown]

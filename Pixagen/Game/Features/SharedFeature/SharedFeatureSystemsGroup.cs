@@ -1,5 +1,4 @@
 using Pixagen.Game.Features.SharedFeature.Systems;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Game.Features.SharedFeature.Helper;
 
 namespace Pixagen.Game.Features.SharedFeature;
@@ -16,12 +15,12 @@ public sealed class SharedFeatureSystemsGroup : IGroupSystem
 
     public ISystem[] Systems { get; } =
     [
+        new EntityEnableStateSyncSystem(),
         new EntityDisableTriggerSystem(),
         new EntityEnableTriggerSystem(),
         new RotationMotionSystem(),
         new LerpMovementSystem(),
-        new RotationSystem(),
-        new MovementSystem(),
+        new TransformVelocityIntegrationSystem(),
         new HierarchyTransformSystem(),
         new DestroySystem(),
     ];

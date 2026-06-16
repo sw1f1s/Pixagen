@@ -4,7 +4,6 @@ using BepuPhysics.Trees;
 using BepuUtilities.Memory;
 using Pixagen.Ecs.DI;
 using Pixagen.Game.Features.PhysicsFeature.Components;
-using Pixagen.Game.Features.SharedFeature.Components;
 using NumericQuaternion = System.Numerics.Quaternion;
 using NumericVector3 = System.Numerics.Vector3;
 

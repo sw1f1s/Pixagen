@@ -1,7 +1,5 @@
 using Pixagen.Game.Features.SharedFeature;
-using Pixagen.Game.Features.SharedFeature.Components;
 using Pixagen.Game.Features.SharedFeature.Systems;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Tests.TestSupport;
 using static Pixagen.Tests.TestSupport.EcsTestAccess;
 
@@ -160,6 +158,8 @@ public sealed class EntityTriggerTests
 
         Assert.True(sawParentDisable);
         Assert.True(sawChildDisable);
+        Assert.True(Access(parent).Has<DisabledInHierarchy>());
+        Assert.True(Access(child).Has<DisabledInHierarchy>());
         Assert.False(context.State.IsEnabled(parent));
         Assert.False(context.State.IsEnabled(child));
 
@@ -169,6 +169,8 @@ public sealed class EntityTriggerTests
 
         Assert.True(sawParentEnable);
         Assert.True(sawChildEnable);
+        Assert.False(Access(parent).Has<DisabledInHierarchy>());
+        Assert.False(Access(child).Has<DisabledInHierarchy>());
         Assert.True(context.State.IsEnabled(parent));
         Assert.True(context.State.IsEnabled(child));
     }

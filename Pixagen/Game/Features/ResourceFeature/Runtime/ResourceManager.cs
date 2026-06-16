@@ -1,5 +1,4 @@
 using System.Threading;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 using Pixagen.Game.Features.RenderFeature.Components;
 using Pixagen.Game.Features.RenderFeature.Meshes;

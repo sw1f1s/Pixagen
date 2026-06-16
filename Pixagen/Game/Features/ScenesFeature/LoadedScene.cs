@@ -1,4 +1,3 @@
-using Pixagen.Ecs.Runtime;
 using Pixagen.Game.Features.ResourceFeature.Runtime;
 
 namespace Pixagen.Game.Features.ScenesFeature;

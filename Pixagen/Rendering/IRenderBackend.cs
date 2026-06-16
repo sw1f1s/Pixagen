@@ -1,8 +1,3 @@
-using Pixagen.Core.App;
-using Pixagen.Core.Input;
-using Pixagen.Core.Performance;
-using Pixagen.Core.Runtime;
-using Pixagen.Core.Timing;
 
 namespace Pixagen.Rendering;
 

@@ -1,5 +1,3 @@
-using Pixagen.Game.Features.SharedFeature.Components;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 
 namespace Pixagen.Game.Features.SharedFeature.Systems;
@@ -8,11 +6,13 @@ public sealed class EntityEnableTriggerSystem : IPreUpdateSystem
 {
     private readonly WorldInject _world = default;
     private readonly ComponentInject<Children> _children = default;
+    private readonly ComponentInject<Parent> _parents = default;
     private readonly ComponentInject<IsEnable> _enableStates = default;
     private readonly ComponentInject<EnableNextTick> _enableNextTicks = default;
     private readonly ComponentInject<DisableNextTick> _disableNextTicks = default;
     private readonly ComponentInject<EnableOneTick> _enableTicks = default;
     private readonly ComponentInject<DisableOneTick> _disableTicks = default;
+    private readonly ComponentInject<DisabledInHierarchy> _disabledInHierarchy = default;
 
     public void PreUpdate()
     {
@@ -40,6 +40,7 @@ public sealed class EntityEnableTriggerSystem : IPreUpdateSystem
 
         RemovePendingTicks(entity);
         Enable(entity);
+        SetDisabledInHierarchy(entity, IsParentDisabled(entity));
 
         if (!_children.Has(entity))
         {
@@ -68,6 +69,39 @@ public sealed class EntityEnableTriggerSystem : IPreUpdateSystem
         if (!_enableTicks.Has(entity))
         {
             _enableTicks.Add(entity, new EnableOneTick());
+        }
+    }
+
+    private bool IsParentDisabled(Entity entity)
+    {
+        if (!_parents.Has(entity))
+        {
+            return false;
+        }
+
+        ref Parent parent = ref _parents.Get(entity);
+        Entity parentEntity = parent.Entity;
+        return parentEntity != Entity.Empty &&
+               _world.IsAlive(parentEntity) &&
+               (_disabledInHierarchy.Has(parentEntity) ||
+                (_enableStates.Has(parentEntity) && !_enableStates.Get(parentEntity).Value));
+    }
+
+    private void SetDisabledInHierarchy(Entity entity, bool disabled)
+    {
+        if (disabled)
+        {
+            if (!_disabledInHierarchy.Has(entity))
+            {
+                _disabledInHierarchy.Add(entity, new DisabledInHierarchy());
+            }
+
+            return;
+        }
+
+        if (_disabledInHierarchy.Has(entity))
+        {
+            _disabledInHierarchy.Remove(entity);
         }
     }
 

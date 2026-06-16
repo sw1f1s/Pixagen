@@ -9,6 +9,8 @@ namespace Pixagen.Ecs.DI
         private World _world;
         private ComponentStorage<T> _storage;
 
+        public readonly int Version => _storage.Version;
+
         public ComponentInject(IWorld world)
         {
             _world = world as World

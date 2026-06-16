@@ -1,5 +1,4 @@
 using Pixagen.Rendering;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 
 namespace Pixagen.Game.Features.UIFeature.Systems;

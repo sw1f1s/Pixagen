@@ -1,5 +1,3 @@
-using Pixagen.Game.Features.SharedFeature.Components;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 
 namespace Pixagen.Game.Features.SharedFeature.Systems;
@@ -13,6 +11,7 @@ public sealed class EntityDisableTriggerSystem : IPreUpdateSystem
     private readonly ComponentInject<DisableNextTick> _disableNextTicks = default;
     private readonly ComponentInject<EnableOneTick> _enableTicks = default;
     private readonly ComponentInject<DisableOneTick> _disableTicks = default;
+    private readonly ComponentInject<DisabledInHierarchy> _disabledInHierarchy = default;
 
     public void PreUpdate()
     {
@@ -40,6 +39,7 @@ public sealed class EntityDisableTriggerSystem : IPreUpdateSystem
 
         RemovePendingTicks(entity);
         Disable(entity);
+        SetDisabledInHierarchy(entity);
 
         if (!_children.Has(entity))
         {
@@ -73,6 +73,14 @@ public sealed class EntityDisableTriggerSystem : IPreUpdateSystem
         if (!_disableTicks.Has(entity))
         {
             _disableTicks.Add(entity, new DisableOneTick());
+        }
+    }
+
+    private void SetDisabledInHierarchy(Entity entity)
+    {
+        if (!_disabledInHierarchy.Has(entity))
+        {
+            _disabledInHierarchy.Add(entity, new DisabledInHierarchy());
         }
     }
 

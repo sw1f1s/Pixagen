@@ -1,8 +1,6 @@
 using BepuPhysics;
 using Pixagen.Game.Features.PhysicsFeature.Components;
 using Pixagen.Game.Features.PhysicsFeature.Runtime;
-using Pixagen.Game.Features.SharedFeature.Components;
-using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
 using Pixagen.Game.Features.FPSCharacterFeature.Components;
 using Pixagen.Game.Features.SharedFeature.Helper;

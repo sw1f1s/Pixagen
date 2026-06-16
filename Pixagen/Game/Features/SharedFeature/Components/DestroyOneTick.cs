@@ -1,5 +1,4 @@
-using Pixagen.Ecs.Runtime;
 
 namespace Pixagen.Game.Features.SharedFeature.Components;
 
-public struct DestroyOneTick : IComponent;
+public readonly struct DestroyOneTick : IComponent;
