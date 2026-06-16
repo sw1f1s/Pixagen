@@ -13,7 +13,7 @@ namespace Pixagen.Ecs.Runtime {
         public InternalGroupSystem(Systems systems, IGroupSystem group) {
             _systems = systems;
             _isActive = group.State;
-            _systemContainer = new SystemContainer(group.Systems.Length);
+            _systemContainer = new SystemContainer(group.Systems.Length, systems.HandleSystemException);
             
 #if DEBUG
             _systemContainer.OnAddSystem += systems.RegisterSystem;

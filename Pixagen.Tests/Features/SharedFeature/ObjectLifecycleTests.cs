@@ -12,15 +12,14 @@ namespace Pixagen.Tests.Features.SharedFeature;
 public sealed class ObjectLifecycleTests
 {
     [Fact]
-    public void CreateEntity_AddsInfo()
+    public void CreateEntity_DoesNotAddGameInfo()
     {
         using var context = new EcsTestContext();
 
         Entity entity = context.World.CreateEntity<Transform>();
 
         AssertEx.Alive(entity);
-        Assert.True(Access(entity).Has<Info>());
-        Assert.False(string.IsNullOrWhiteSpace(Access(entity).Get<Info>().Id));
+        Assert.False(Access(entity).Has<Info>());
     }
 
     [Fact]

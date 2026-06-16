@@ -3,6 +3,7 @@ using Pixagen.Ecs.DI;
 using Pixagen.Game;
 using Pixagen.Rendering;
 using Pixagen.Rendering.Vulkan;
+using PixagenDebug = Pixagen.Core.Debugging.Debug;
 
 namespace Pixagen.Core.App;
 
@@ -14,6 +15,7 @@ public sealed class EngineApp : IDisposable
     private readonly FrameBuffer _frameBuffer;
     private readonly IRenderBackend _renderBackend;
     private readonly PerformanceStats _performanceStats;
+    private readonly PixagenDebug _debug;
     private readonly IWorld _world;
     private readonly Systems _systems;
 
@@ -27,6 +29,7 @@ public sealed class EngineApp : IDisposable
         FrameBuffer frameBuffer,
         IRenderBackend renderBackend,
         PerformanceStats performanceStats,
+        PixagenDebug debug,
         IWorld world,
         Systems systems)
     {
@@ -36,47 +39,70 @@ public sealed class EngineApp : IDisposable
         _frameBuffer = frameBuffer;
         _renderBackend = renderBackend;
         _performanceStats = performanceStats;
+        _debug = debug;
         _world = world;
         _systems = systems;
     }
 
     public static EngineApp CreateDefault(EngineOptions options)
     {
-        var time = new Time();
-        var input = new InputState();
-        var renderBackendOptions = RenderBackendOptions.FromEngineOptions(options);
-        var frameBuffer = new FrameBuffer(
-            Math.Max(1, renderBackendOptions.WindowWidth / renderBackendOptions.CellPixelSize),
-            Math.Max(1, renderBackendOptions.WindowHeight / renderBackendOptions.CellPixelSize));
-        var performanceStats = new PerformanceStats();
-        
-        IRenderBackend renderBackend = new VulkanWindowBackend(performanceStats);
-        IRaycastComputeRenderer raycastComputeRenderer = renderBackend as IRaycastComputeRenderer ?? NullRaycastComputeRenderer.Instance;
+        PixagenDebug debug = PixagenDebug.CreateDefault();
+        debug.InstallGlobalExceptionHandlers();
 
-        IWorld world = WorldBuilder.Build();
-        Systems systems = new RuntimeSystemContainer().Create(world);
-        systems
-            .Inject(
+        IRenderBackend? renderBackend = null;
+        IWorld? world = null;
+        Systems? systems = null;
+
+        try
+        {
+            var time = new Time();
+            var input = new InputState();
+            var renderBackendOptions = RenderBackendOptions.FromEngineOptions(options);
+            var frameBuffer = new FrameBuffer(
+                Math.Max(1, renderBackendOptions.WindowWidth / renderBackendOptions.CellPixelSize),
+                Math.Max(1, renderBackendOptions.WindowHeight / renderBackendOptions.CellPixelSize));
+            var performanceStats = new PerformanceStats();
+
+            renderBackend = new VulkanWindowBackend(performanceStats);
+            IRaycastComputeRenderer raycastComputeRenderer = renderBackend as IRaycastComputeRenderer ?? NullRaycastComputeRenderer.Instance;
+
+            world = WorldBuilder.Build();
+            systems = new RuntimeSystemContainer().Create(world);
+            systems.SystemException += systemException => LogSystemException(debug, systemException);
+            systems
+                .Inject(
+                    time,
+                    input,
+                    options,
+                    frameBuffer,
+                    renderBackend,
+                    renderBackendOptions,
+                    raycastComputeRenderer,
+                    performanceStats,
+                    debug,
+                    options.RenderSettings);
+            systems.Init();
+
+            return new EngineApp(
+                options,
                 time,
                 input,
-                options,
                 frameBuffer,
                 renderBackend,
-                renderBackendOptions,
-                raycastComputeRenderer,
                 performanceStats,
-                options.RenderSettings);
-        systems.Init();
-
-        return new EngineApp(
-            options,
-            time,
-            input,
-            frameBuffer,
-            renderBackend,
-            performanceStats,
-            world,
-            systems);
+                debug,
+                world,
+                systems);
+        }
+        catch (Exception exception)
+        {
+            debug.Exception(exception, "EngineApp.CreateDefault failed.");
+            DisposeCreateFailurePart(debug, nameof(systems), () => systems?.Dispose());
+            DisposeCreateFailurePart(debug, nameof(world), () => world?.Dispose());
+            DisposeCreateFailurePart(debug, nameof(renderBackend), () => renderBackend?.Dispose());
+            debug.Dispose();
+            throw;
+        }
     }
 
     public void Run()
@@ -93,19 +119,23 @@ public sealed class EngineApp : IDisposable
                 _renderBackend.PumpInput(_input);
                 ResizeFrameBufferToViewport();
                 _time.Tick();
-                _systems.Update();
+                _systems.Update(_time.ConsumeFixedSteps());
+            }
+            catch (Exception exception)
+            {
+                _debug.Exception(exception, "Engine frame runtime exception. Execution will continue.");
             }
             finally
             {
                 performanceFrame.Dispose();
             }
 
-            if (_options.RunSingleFrame || _input.ExitRequested || _renderBackend.IsCloseRequested || _stopRequested)
+            if (ShouldStop())
             {
                 break;
             }
 
-            SleepToTargetFrameTime(frameStart);
+            TrySleepToTargetFrameTime(frameStart);
         }
         while (true);
     }
@@ -156,6 +186,31 @@ public sealed class EngineApp : IDisposable
         }
     }
 
+    private bool ShouldStop()
+    {
+        try
+        {
+            return _options.RunSingleFrame || _input.ExitRequested || _renderBackend.IsCloseRequested || _stopRequested;
+        }
+        catch (Exception exception)
+        {
+            _debug.Exception(exception, "Engine stop condition check failed. Execution will continue.");
+            return false;
+        }
+    }
+
+    private void TrySleepToTargetFrameTime(long frameStart)
+    {
+        try
+        {
+            SleepToTargetFrameTime(frameStart);
+        }
+        catch (Exception exception)
+        {
+            _debug.Exception(exception, "Engine frame sleep failed. Execution will continue.");
+        }
+    }
+
     public void Dispose()
     {
         if (_disposed)
@@ -164,9 +219,41 @@ public sealed class EngineApp : IDisposable
         }
 
         _disposed = true;
-        _systems.Dispose();
-        _world.Dispose();
-        _renderBackend.Dispose();
+        DisposeRuntimePart(nameof(_systems), _systems.Dispose);
+        DisposeRuntimePart(nameof(_world), _world.Dispose);
+        DisposeRuntimePart(nameof(_renderBackend), _renderBackend.Dispose);
+        _debug.Dispose();
         GC.SuppressFinalize(this);
+    }
+
+    private void DisposeRuntimePart(string name, Action dispose)
+    {
+        try
+        {
+            dispose();
+        }
+        catch (Exception exception)
+        {
+            _debug.Exception(exception, $"EngineApp.Dispose failed for {name}.");
+        }
+    }
+
+    private static void DisposeCreateFailurePart(PixagenDebug debug, string name, Action dispose)
+    {
+        try
+        {
+            dispose();
+        }
+        catch (Exception exception)
+        {
+            debug.Exception(exception, $"EngineApp.CreateDefault cleanup failed for {name}.");
+        }
+    }
+
+    private static void LogSystemException(PixagenDebug debug, SystemExecutionException systemException)
+    {
+        debug.Exception(
+            systemException.Exception,
+            $"System runtime exception in {systemException.System.GetType().FullName}.{systemException.Stage}. Execution will continue.");
     }
 }

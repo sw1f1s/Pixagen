@@ -16,7 +16,7 @@ public sealed class SystemPhaseTests
             new PhaseSystem("phase", events),
             new UpdateOnlySystem("update-only", events));
 
-        systems.Update();
+        systems.Update(fixedStepCount: 2);
 
         Assert.Equal(
             [
@@ -28,7 +28,6 @@ public sealed class SystemPhaseTests
                 "phase:late",
             ],
             events);
-        Assert.Equal(2UL, context.Time.FixedFrameIndex);
     }
 
     private sealed class PhaseSystem(string name, List<string> events) : IPreUpdateSystem, IFixedUpdateSystem, IUpdateSystem, ILateUpdateSystem

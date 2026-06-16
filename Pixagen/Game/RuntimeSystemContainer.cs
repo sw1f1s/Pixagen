@@ -1,3 +1,4 @@
+using Pixagen.Game.Features.DebugFeature;
 using Pixagen.Game.Features.FPSCharacterFeature;
 using Pixagen.Game.Features.FreeCameraFeature;
 using Pixagen.Game.Features.PhysicsFeature;
@@ -15,6 +16,7 @@ public sealed class RuntimeSystemContainer
     {
         var systems = new Systems(world);
         systems
+            .Add(new DebugFeatureSystemsGroup())
             .Add(new ResourceFeatureSystemsGroup())
             .Add(new ScenesFeatureSystemsGroup())
             .Add(new FreeCameraFeatureSystemsGroup())

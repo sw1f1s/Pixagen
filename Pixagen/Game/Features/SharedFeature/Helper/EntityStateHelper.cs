@@ -23,6 +23,7 @@ public sealed class EntityStateHelper
         Entity entity = _world.Create<Transform>();
         ref Transform transform = ref _transforms.Get(entity);
         transform = new Transform(Vector3.Zero);
+        _infos.Add(entity, Info.Create());
         _localTransforms.Add(entity, LocalTransform.FromTransform(transform));
         _children.Set(entity);
         _spawnTicks.Add(entity, new SpawnOneTick());

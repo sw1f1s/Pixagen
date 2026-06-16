@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using Pixagen.Ecs.Collections;
-using Pixagen.Game.Features.SharedFeature.Components;
+
 namespace Pixagen.Ecs.Runtime {
     public sealed class World : IWorld {
         public byte Id { get; private set; }
@@ -46,13 +46,11 @@ namespace Pixagen.Ecs.Runtime {
         
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public Entity CreateEntity<T>() where T : struct, IComponent {
-            var entity = CreateEntityInternal(addInfo: true);
+            var entity = CreateEntityInternal();
 #if DEBUG
             OnCreateEntity?.Invoke(this, entity);
 #endif
-            if (typeof(T) != typeof(Info)) {
-                SetComponent(entity, _componentsStorage.GetComponentStorage<T>());
-            }
+            SetComponent(entity, _componentsStorage.GetComponentStorage<T>());
             return entity;
         }
 
@@ -66,7 +64,6 @@ namespace Pixagen.Ecs.Runtime {
             
             ref var newEntityData = ref _entityRegistry.GetFreeEntity(id, gen);
             var entity = newEntityData.GetEntity();
-            AddInfoComponent(entity, ref newEntityData);
 #if DEBUG
             OnCreateEntity?.Invoke(this, entity);
 #endif
@@ -84,7 +81,7 @@ namespace Pixagen.Ecs.Runtime {
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         public Entity CopyEntity(in Entity entity) {
-            var copyEntity = CreateEntityInternal(addInfo: false);
+            var copyEntity = CreateEntityInternal();
             ref var copyEntityData = ref _entityRegistry.Get(copyEntity);
             foreach (var componentStorage in _componentsStorage.Storages) {
                 if (!componentStorage.HasComponent(entity)) {
@@ -216,59 +213,18 @@ namespace Pixagen.Ecs.Runtime {
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
-        private Entity CreateEntityInternal(bool addInfo) {
+        private Entity CreateEntityInternal() {
             ref var entityData = ref _entityRegistry.GetFreeEntity();
-            var entity = entityData.GetEntity();
-            if (addInfo) {
-                AddInfoComponent(entity, ref entityData);
-            }
-
-            return entity;
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void AddInfoComponent(Entity entity, ref EntityData entityData) {
-            var storage = _componentsStorage.GetComponentStorage<Info>();
-            storage.AddComponent(entity, Info.Create());
-            entityData.AddComponent();
-            _filterMap.AddDirtyEntity(storage.Id, entity.Id);
-#if DEBUG
-            OnAddComponent?.Invoke(this, entity, typeof(Info));
-#endif
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private bool HasOnlyInfo(Entity entity, in EntityData entityData) {
-            return entityData.ComponentCount == 1 &&
-                   _componentsStorage.GetComponentStorage<Info>().HasComponent(entity);
-        }
-
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private void RemoveInfoComponent(Entity entity, ref EntityData entityData) {
-            var storage = _componentsStorage.GetComponentStorage<Info>();
-            if (!storage.RemoveComponent(entity)) {
-                return;
-            }
-
-            entityData.RemoveComponent();
-            _filterMap.AddDirtyEntity(storage.Id, entity.Id);
-#if DEBUG
-            OnRemoveComponent?.Invoke(this, entity, typeof(Info));
-#endif
+            return entityData.GetEntity();
         }
 
         [MethodImpl (MethodImplOptions.AggressiveInlining)]
         private void RemoveComponentInternal(in Entity entity, IComponentStorage storage) {
-            if (storage.ComponentType == typeof(Info)) {
-                return;
-            }
-
             if (storage.RemoveComponent(entity)) {
                 ref var entityData = ref _entityRegistry.Get(entity);
                 entityData.RemoveComponent();
                 _filterMap.AddDirtyEntity(storage.Id, entity.Id);
-                if (entityData.IsEmpty || HasOnlyInfo(entity, in entityData)) {
-                    RemoveInfoComponent(entity, ref entityData);
+                if (entityData.IsEmpty) {
                     _entityRegistry.Return(entityData);
                 }   
             }

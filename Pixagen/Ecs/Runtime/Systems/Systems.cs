@@ -1,10 +1,5 @@
 using System;
 using System.Collections.Generic;
-using Pixagen.Core.App;
-using Pixagen.Core.Input;
-using Pixagen.Core.Performance;
-using Pixagen.Core.Runtime;
-using Pixagen.Core.Timing;
 using Pixagen.Ecs.DI;
 
 namespace Pixagen.Ecs.Runtime {
@@ -19,16 +14,17 @@ namespace Pixagen.Ecs.Runtime {
         private readonly SystemContainer _systemContainer;
         private readonly Dictionary<string, InternalGroupSystem> _groupSystems;
         private readonly List<object> _groupInjects;
-        private Time _time;
         private bool _isDisposed;
         
+        public event Action<SystemExecutionException> SystemException;
+
         public IWorld World => _world;
         public IReadOnlyList<ISystem> AllSystems => _systemContainer.GetAllSystems();
         internal IReadOnlyList<object> GroupInjects => _groupInjects;
         
         public Systems(IWorld world) {
             _world = world;
-            _systemContainer = new SystemContainer((int)world.Options.SystemsCapacity);
+            _systemContainer = new SystemContainer((int)world.Options.SystemsCapacity, HandleSystemException);
             _groupSystems = new Dictionary<string, InternalGroupSystem>((int)world.Options.SystemsCapacity);
             _groupInjects = new List<object>((int)world.Options.SystemsCapacity);
 #if DEBUG
@@ -62,17 +58,29 @@ namespace Pixagen.Ecs.Runtime {
         }
 
         public void Update() {
+            Update(1);
+        }
+
+        public void Update(int fixedStepCount) {
             if (_isDisposed) {
                 throw new ObjectDisposedException(nameof(Systems));
             }
             _systemContainer.PreUpdate();
-            _systemContainer.FixedUpdate(GetFixedStepCount());
+            _systemContainer.FixedUpdate(Math.Max(0, fixedStepCount));
             _systemContainer.Update();
             _systemContainer.LateUpdate();
         }
 
-        internal void SetTime(Time time) {
-            _time = time;
+        internal void HandleSystemException(Exception exception, ISystem system, string stage) {
+            var systemException = new SystemExecutionException(exception, system, stage);
+            Action<SystemExecutionException> handler = SystemException;
+            if (handler is null) {
+                return;
+            }
+
+            foreach (Action<SystemExecutionException> subscriber in handler.GetInvocationList()) {
+                subscriber(systemException);
+            }
         }
 
 #if DEBUG
@@ -103,15 +111,9 @@ namespace Pixagen.Ecs.Runtime {
             _systemContainer.Dispose();
             DisposeInjects();
             _world = null;
-            _time = null;
+            SystemException = null;
             _groupSystems.Clear();
             _groupInjects.Clear();
-        }
-
-        private int GetFixedStepCount() {
-            return _time is not null
-                ? _time.ConsumeFixedSteps()
-                : 1;
         }
 
         private void DisposeInjects() {

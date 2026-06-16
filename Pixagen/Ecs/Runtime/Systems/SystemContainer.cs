@@ -16,9 +16,10 @@ namespace Pixagen.Ecs.Runtime {
         private readonly List<IUpdateSystem> _updateSystems;
         private readonly List<ILateUpdateSystem> _lateUpdateSystems;
         private readonly List<ISystem> _cachedSystems;
+        private readonly Action<Exception, ISystem, string> _exceptionHandler;
         private bool _isDisposed;
 
-        internal SystemContainer(int capacity) {
+        internal SystemContainer(int capacity, Action<Exception, ISystem, string> exceptionHandler) {
             _allSystems = new List<ISystem>(capacity);
             _initSystems = new List<IInitSystem>(capacity);
             _preUpdateSystems = new List<IPreUpdateSystem>(capacity);
@@ -26,6 +27,7 @@ namespace Pixagen.Ecs.Runtime {
             _updateSystems = new List<IUpdateSystem>(capacity);
             _lateUpdateSystems = new List<ILateUpdateSystem>(capacity);
             _cachedSystems = new List<ISystem>(capacity);
+            _exceptionHandler = exceptionHandler;
         }
 
         internal void AddSystem(ISystem system) {
@@ -68,7 +70,8 @@ namespace Pixagen.Ecs.Runtime {
             }
             
             for (int i = 0; i < _initSystems.Count; i++) {
-                _initSystems[i].Init();
+                IInitSystem system = _initSystems[i];
+                ExecuteSystem(system, nameof(IInitSystem.Init), system.Init);
             }
         }
 
@@ -78,17 +81,8 @@ namespace Pixagen.Ecs.Runtime {
             }
 
             for (int i = 0; i < _preUpdateSystems.Count; i++) {
-#if DEBUG
-                if (_preUpdateSystems[i] is not InternalGroupSystem) {
-                    OnStartSystemExecute?.Invoke(_preUpdateSystems[i]);
-                }
-#endif
-                _preUpdateSystems[i].PreUpdate();
-#if DEBUG
-                if (_preUpdateSystems[i] is not InternalGroupSystem) {
-                    OnEndSystemExecute?.Invoke(_preUpdateSystems[i]);
-                }
-#endif
+                IPreUpdateSystem system = _preUpdateSystems[i];
+                ExecuteSystem(system, nameof(IPreUpdateSystem.PreUpdate), system.PreUpdate);
             }
         }
 
@@ -99,17 +93,8 @@ namespace Pixagen.Ecs.Runtime {
 
             for (int step = 0; step < stepCount; step++) {
                 for (int i = 0; i < _fixedUpdateSystems.Count; i++) {
-#if DEBUG
-                    if (_fixedUpdateSystems[i] is not InternalGroupSystem) {
-                        OnStartSystemExecute?.Invoke(_fixedUpdateSystems[i]);
-                    }
-#endif
-                    _fixedUpdateSystems[i].FixedUpdate();
-#if DEBUG
-                    if (_fixedUpdateSystems[i] is not InternalGroupSystem) {
-                        OnEndSystemExecute?.Invoke(_fixedUpdateSystems[i]);
-                    }
-#endif
+                    IFixedUpdateSystem system = _fixedUpdateSystems[i];
+                    ExecuteSystem(system, nameof(IFixedUpdateSystem.FixedUpdate), system.FixedUpdate);
                 }
             }
         }
@@ -120,17 +105,8 @@ namespace Pixagen.Ecs.Runtime {
             }
 
             for (int i = 0; i < _updateSystems.Count; i++) {
-#if DEBUG
-                if (_updateSystems[i] is not InternalGroupSystem) {
-                    OnStartSystemExecute?.Invoke(_updateSystems[i]);
-                }
-#endif
-                _updateSystems[i].Update();
-#if DEBUG
-                if (_updateSystems[i] is not InternalGroupSystem) {
-                    OnEndSystemExecute?.Invoke(_updateSystems[i]);
-                }
-#endif
+                IUpdateSystem system = _updateSystems[i];
+                ExecuteSystem(system, nameof(IUpdateSystem.Update), system.Update);
             }
         }
 
@@ -140,17 +116,38 @@ namespace Pixagen.Ecs.Runtime {
             }
 
             for (int i = 0; i < _lateUpdateSystems.Count; i++) {
+                ILateUpdateSystem system = _lateUpdateSystems[i];
+                ExecuteSystem(system, nameof(ILateUpdateSystem.LateUpdate), system.LateUpdate);
+            }
+        }
+
+        private void ExecuteSystem(ISystem system, string stage, Action execute) {
+            try {
 #if DEBUG
-                if (_lateUpdateSystems[i] is not InternalGroupSystem) {
-                    OnStartSystemExecute?.Invoke(_lateUpdateSystems[i]);
+                if (system is not InternalGroupSystem) {
+                    OnStartSystemExecute?.Invoke(system);
                 }
 #endif
-                _lateUpdateSystems[i].LateUpdate();
+                execute();
+            } catch (Exception exception) {
+                HandleExecutionException(exception, system, stage);
+            } finally {
 #if DEBUG
-                if (_lateUpdateSystems[i] is not InternalGroupSystem) {
-                    OnEndSystemExecute?.Invoke(_lateUpdateSystems[i]);
+                if (system is not InternalGroupSystem) {
+                    OnEndSystemExecute?.Invoke(system);
                 }
 #endif
+            }
+        }
+
+        private void HandleExecutionException(Exception exception, ISystem system, string stage) {
+            try {
+                _exceptionHandler(exception, system, stage);
+            } catch (Exception handlerException) {
+                Console.Error.WriteLine(
+                    $"System exception handler failed for {system.GetType().FullName}.{stage}.{Environment.NewLine}" +
+                    $"{handlerException}{Environment.NewLine}" +
+                    $"Original exception:{Environment.NewLine}{exception}");
             }
         }
 

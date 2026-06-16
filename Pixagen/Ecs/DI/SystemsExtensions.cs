@@ -1,16 +1,9 @@
-using System;
 using System.Reflection;
-using Pixagen.Core.App;
-using Pixagen.Core.Input;
-using Pixagen.Core.Performance;
-using Pixagen.Core.Runtime;
-using Pixagen.Core.Timing;
 
 namespace Pixagen.Ecs.DI {
     public static class SystemsExtensions {
         public static ISystems Inject(this ISystems systems, params object[] injects) {
             injects = ResolveInjects(systems, injects);
-            BindContainerServices(systems, injects);
 
             InjectGroupServices(systems, injects);
 
@@ -28,7 +21,6 @@ namespace Pixagen.Ecs.DI {
             }
 
             injects = ResolveInjects(systems, injects);
-            BindContainerServices(systems, injects);
             InjectToObject(systems, target, injects);
             AfterInject(target);
             return target;
@@ -47,19 +39,6 @@ namespace Pixagen.Ecs.DI {
             }
 
             return resolved;
-        }
-
-        private static void BindContainerServices(ISystems systems, object[] injects) {
-            if (systems is not Systems concreteSystems) {
-                return;
-            }
-
-            for (int i = 0; i < injects.Length; i++) {
-                if (injects[i] is Time time) {
-                    concreteSystems.SetTime(time);
-                    return;
-                }
-            }
         }
 
         private static void InjectGroupServices(ISystems systems, object[] injects) {
