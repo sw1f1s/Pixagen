@@ -1,0 +1,795 @@
+{
+  "version": 1,
+  "id": "default",
+  "name": "Default Scene",
+  "objects": [
+    {
+      "id": "fps-character",
+      "name": "FPS Character",
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "z": -6
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
+          "positionDelta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAngleDelta": 0,
+          "yawDelta": 0,
+          "pitchDelta": 0,
+          "rollDelta": 0
+        },
+        {
+          "type": "Pixagen.Game.Features.FPSCharacterFeature.Components.FPSCharacter",
+          "moveSpeed": 5,
+          "cameraRotationSpeed": 2,
+          "jumpSpeed": 5,
+          "groundProbeDistance": 1.0500000000465661,
+          "groundNormalY": 0.6000000000931323,
+          "height": 1.75,
+          "moveDirection": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "jumpRequested": false,
+          "isGrounded": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "dynamic",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": true
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "capsule",
+          "size": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          },
+          "radius": 0.30000000004656613,
+          "length": 1.1499999999068677
+        }
+      ],
+      "children": [
+        {
+          "id": "fps-character-camera",
+          "name": "FPS Character Camera",
+          "components": [
+            {
+              "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+              "position": {
+                "x": 0,
+                "y": 0.875,
+                "z": -6
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+              }
+            },
+            {
+              "type": "Pixagen.Game.Features.SharedFeature.Components.LocalTransform",
+              "position": {
+                "x": 0,
+                "y": 0.875,
+                "z": 0
+              },
+              "rotation": {
+                "x": 0,
+                "y": 0,
+                "z": 0,
+                "w": 1
+              },
+              "scale": {
+                "x": 1,
+                "y": 1,
+                "z": 1
+              }
+            },
+            {
+              "type": "Pixagen.Game.Features.RenderFeature.Components.Camera",
+              "projectionPlaneDistance": 1,
+              "viewportHalfWidth": 1,
+              "viewportHalfHeight": 0.5625,
+              "maxDistance": 32
+            },
+            {
+              "type": "Pixagen.Game.Features.FPSCharacterFeature.Components.FPSCharacterCamera",
+              "pitch": 0,
+              "minPitch": -1.4835298641119152,
+              "maxPitch": 1.4835298641119152
+            }
+          ],
+          "children": []
+        }
+      ]
+    },
+    {
+      "id": "main-light",
+      "name": "Main Light",
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": -4,
+            "y": 6,
+            "z": -4
+          },
+          "rotation": {
+            "x": -0.7505326881073415,
+            "y": -0.37526634405367076,
+            "z": 0,
+            "w": 0.5439447166863829
+          },
+          "scale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.LightDirection",
+          "intensity": 1,
+          "ambientIntensity": 0.19999999995343387,
+          "shadowIntensity": 0.8000000000465661,
+          "shadowBias": 0.05000000004656613,
+          "shadowMaxDistance": 100
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "ground",
+      "name": "Ground",
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 0,
+            "y": -1,
+            "z": 0
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 96,
+            "y": 1,
+            "z": 96
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "plane.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#67A970",
+          "texture": {
+            "asset": "checker.ppm",
+            "tilingX": 16,
+            "tilingY": 16,
+            "offsetX": 0,
+            "offsetY": 0
+          },
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 96,
+            "y": 0.05000000004656613,
+            "z": 96
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "red-sphere",
+      "name": "Red Sphere",
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": -2,
+            "y": 0,
+            "z": 4
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "sphere.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#E85C4C",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "sphere",
+          "size": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          },
+          "radius": 1,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "yellow-cube",
+      "name": "Yellow Cube",
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 0,
+            "y": 0,
+            "z": 5
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.25882302806712687,
+            "z": 0,
+            "w": 0.9659247591625899
+          },
+          "scale": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 1.5
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#E0C556",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 1.5
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "cyan-sphere",
+      "name": "Cyan Sphere",
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 2,
+            "y": 0.5,
+            "z": 7
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 1.5,
+            "y": 1.5,
+            "z": 1.5
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "sphere.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#79D6DA",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "sphere",
+          "size": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          },
+          "radius": 1.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "moving-blue-cube",
+      "name": "Moving Blue Cube",
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": -4,
+            "y": 0,
+            "z": 6
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
+          "positionDelta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAngleDelta": 0,
+          "yawDelta": 0,
+          "pitchDelta": 0,
+          "rollDelta": 0
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#5B8DFF",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "kinematic",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.RotationMotion",
+          "axis": {
+            "x": 0,
+            "y": 1,
+            "z": 0
+          },
+          "anglePerSecond": 1.3999999999068677,
+          "localSpace": false
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.LerpMovement",
+          "from": {
+            "x": -4,
+            "y": 0,
+            "z": 5
+          },
+          "to": {
+            "x": -4,
+            "y": 1.5,
+            "z": 8
+          },
+          "duration": 2.199999999953434,
+          "elapsed": 0,
+          "mode": "pingPong"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "moving-green-cube",
+      "name": "Moving Green Cube",
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": -6,
+            "y": 0,
+            "z": 8
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
+          "positionDelta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAngleDelta": 0,
+          "yawDelta": 0,
+          "pitchDelta": 0,
+          "rollDelta": 0
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#5DD280",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "kinematic",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.RotationMotion",
+          "axis": {
+            "x": 0,
+            "y": 1,
+            "z": 1
+          },
+          "anglePerSecond": 1.1000000000931323,
+          "localSpace": false
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.LerpMovement",
+          "from": {
+            "x": -6,
+            "y": 0,
+            "z": 7
+          },
+          "to": {
+            "x": -2.5,
+            "y": 0.75,
+            "z": 8.5
+          },
+          "duration": 2.800000000046566,
+          "elapsed": 0,
+          "mode": "pingPong"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "moving-magenta-sphere",
+      "name": "Moving Magenta Sphere",
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 4,
+            "y": 0,
+            "z": 5
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 0.75,
+            "y": 0.75,
+            "z": 0.75
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
+          "positionDelta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAngleDelta": 0,
+          "yawDelta": 0,
+          "pitchDelta": 0,
+          "rollDelta": 0
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "sphere.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#D666D6",
+          "transparent": {
+            "opacity": 0.6499999999068677,
+            "alphaCutoff": 0
+          },
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "kinematic",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "sphere",
+          "size": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          },
+          "radius": 0.75,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.RotationMotion",
+          "axis": {
+            "x": 1,
+            "y": 1,
+            "z": 0
+          },
+          "anglePerSecond": 2.1000000000931323,
+          "localSpace": false
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.LerpMovement",
+          "from": {
+            "x": 4,
+            "y": -0.25,
+            "z": 4
+          },
+          "to": {
+            "x": 4,
+            "y": 1.25,
+            "z": 7
+          },
+          "duration": 1.8000000000465661,
+          "elapsed": 0,
+          "mode": "pingPong"
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "ui-fps",
+      "name": "FPS Counter",
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.UIFeature.Components.TransformUI",
+          "x": 0,
+          "y": 0,
+          "order": 0
+        },
+        {
+          "type": "Pixagen.Game.Features.UIFeature.Components.TextUI",
+          "value": "",
+          "color": "#F0DB56",
+          "fontSize": 16
+        },
+        {
+          "type": "Pixagen.Game.Features.UIFeature.Components.FPSCounterUI",
+          "updateInterval": 0.25,
+          "elapsed": 0,
+          "frames": 0,
+          "value": 0
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "ui-profiler",
+      "name": "Profiler",
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.UIFeature.Components.TransformUI",
+          "x": 0,
+          "y": 16,
+          "order": 2
+        },
+        {
+          "type": "Pixagen.Game.Features.UIFeature.Components.TextUI",
+          "value": "",
+          "color": "#84ECBC",
+          "fontSize": 12
+        },
+        {
+          "type": "Pixagen.Game.Features.UIFeature.Components.ProfilerUI",
+          "updateInterval": 0.25,
+          "elapsed": 0
+        }
+      ],
+      "children": []
+    },
+    {
+      "id": "ui-controls",
+      "name": "Controls Text",
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.UIFeature.Components.TransformUI",
+          "x": 0,
+          "y": 8,
+          "order": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.UIFeature.Components.TextUI",
+          "value": "WASD Space Arrows Mouse | Esc/Ctrl\u002BC exits",
+          "color": "#F0DB56",
+          "fontSize": 16
+        }
+      ],
+      "children": []
+    }
+  ]
+}

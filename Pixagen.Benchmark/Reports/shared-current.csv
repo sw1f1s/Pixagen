@@ -1,0 +1,2 @@
+scenario,entities,frames,setup_ms,setup_alloc_bytes,mean_ms,p95_ms,worst_ms,fps,alloc_bytes_per_frame,managed_mb,heap_mb,working_set_mb,private_mb,cpu_all_cores_percent,cpu_single_core_percent,gen0,gen1,gen2,counters,error
+"shared.systems",100000,16,192.180958,188783032,120.66483088,122.349875,122.349875,8.2874189,55581.5,131.68215942,148.31057739,187,0,10.29695002,102.96950016,0,0,0,"hierarchyPairs=20000; toggleCandidates=12500",""

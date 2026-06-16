@@ -1,0 +1,6 @@
+# Unit XZ plane centered at origin.
+v -0.5 0.0 -0.5
+v 0.5 0.0 -0.5
+v 0.5 0.0 0.5
+v -0.5 0.0 0.5
+f 1 4 3 2

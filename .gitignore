@@ -1,0 +1,36 @@
+# Build results
+[Bb]in/
+[Oo]bj/
+out/
+
+# Test and coverage output
+TestResults/
+*.trx
+coverage/
+coverage.cobertura.xml
+
+# Benchmark and profiling output
+BenchmarkDotNet.Artifacts/
+*.trace
+*.vspx
+
+# IDE/editor state
+.vs/
+.vscode/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.DotSettings.user
+
+# Rider/ReSharper caches
+_ReSharper*/
+*.ReSharper
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
