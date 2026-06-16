@@ -144,7 +144,7 @@ public sealed class EngineOptions
 
     private static string? ParseNullableString(string[] args, string name)
     {
-        string? value = "Content/Scenes/default.scene.json";
+        string? value = null;
         for (int i = 0; i < args.Length; i++)
         {
             string arg = args[i];

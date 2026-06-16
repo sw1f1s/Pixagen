@@ -89,6 +89,18 @@ public sealed class ResourceManagerTests
     }
 
     [Fact]
+    public void ResourceManager_LoadStartupSceneWithResources_ResolvesContentScenePath()
+    {
+        using var resources = new ResourceManager();
+
+        SceneResourceScope scope = resources.LoadStartupSceneWithResources("Content/Scenes/default.scene.json");
+
+        Assert.Equal("default", scope.SceneId);
+        Assert.True(resources.IsMeshLoaded("cube"));
+        Assert.True(resources.IsTextureLoaded("checker"));
+    }
+
+    [Fact]
     public async Task ResourceManager_LoadAsync_ReturnsCompletedValueTaskForCachedResources()
     {
         using var resources = new ResourceManager();

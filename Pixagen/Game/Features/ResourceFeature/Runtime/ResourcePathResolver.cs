@@ -52,7 +52,23 @@ internal static class ResourcePathResolver
             throw new InvalidOperationException("Scene path is empty.");
         }
 
-        return Path.GetFullPath(path.Trim());
+        string trimmed = path.Trim();
+        if (Path.IsPathRooted(trimmed))
+        {
+            return Path.GetFullPath(trimmed);
+        }
+
+        string currentDirectoryPath = Path.GetFullPath(trimmed);
+        if (File.Exists(currentDirectoryPath))
+        {
+            return currentDirectoryPath;
+        }
+
+        string appDirectoryPath = Path.GetFullPath(Path.Combine(AppContext.BaseDirectory, trimmed));
+        string normalized = trimmed.Replace('\\', '/');
+        return normalized.StartsWith("Content/", StringComparison.OrdinalIgnoreCase)
+            ? appDirectoryPath
+            : currentDirectoryPath;
     }
 
     private static string ResolveContentPath(string root, string id, string kind)

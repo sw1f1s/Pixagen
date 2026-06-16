@@ -17,6 +17,8 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 {
     private const string WindowTitle = "Pixagen";
     private const int OverlaySafeInsetPixels = 2;
+    private const int MaxGpuFramesInFlight = 2;
+    private static readonly TimeSpan GpuFenceTimeout = TimeSpan.FromSeconds(5);
 
     private readonly PerformanceStats _performanceStats;
     private readonly List<PendingGpuFrame> _pendingGpuFrames = new();
@@ -61,6 +63,8 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
     private Vector4[] _gpuTexturePixels = [Vector4.One];
     private readonly Dictionary<TextureAsset, int> _raycastTextureIndices = new();
     private readonly List<TextureAsset> _raycastTextures = new();
+    private uint _raycastDispatchX;
+    private uint _raycastDispatchY;
     private long _currentGpuFrameStartTicks;
     private bool _hasCurrentGpuFrame;
     private int _currentRenderCalls;
@@ -167,6 +171,8 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         int overlayWidth = frameBuffer.Width * _options.CellPixelSize;
         int overlayHeight = frameBuffer.Height * _options.CellPixelSize;
 
+        ThrottleGpuFrames(graphicsDevice);
+
         if (_hasComputeSceneFrame)
         {
             UpdateOverlayTexture(overlayWidth, overlayHeight);
@@ -182,6 +188,13 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         BeginGpuFrame();
         _currentRenderCalls++;
         commandList.Begin();
+        if (_hasComputeSceneFrame)
+        {
+            commandList.SetPipeline(_raycastComputePipeline);
+            commandList.SetComputeResourceSet(0, _raycastComputeSet);
+            commandList.Dispatch(_raycastDispatchX, _raycastDispatchY, 1);
+        }
+
         commandList.SetFramebuffer(graphicsDevice.SwapchainFramebuffer);
         commandList.ClearColorTarget(0, RgbaFloat.Black);
         commandList.SetPipeline(_compositePipeline);
@@ -197,6 +210,8 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         _hasCurrentGpuFrame = false;
         _currentRenderCalls = 0;
         _hasComputeSceneFrame = false;
+        _raycastDispatchX = 0;
+        _raycastDispatchY = 0;
     }
 
     public bool TryRenderRaycast(in RaycastComputeRequest request)
@@ -206,9 +221,6 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
             return false;
         }
 
-        GraphicsDevice graphicsDevice = RequireGraphicsDevice();
-        CommandList commandList = RequireCommandList();
-
         EnsureSceneTexture(request.Width, request.Height);
         EnsureRaycastComputePipeline();
         UploadRaycastScene(request);
@@ -216,16 +228,8 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 
         BeginGpuFrame();
         _currentRenderCalls++;
-        commandList.Begin();
-        commandList.SetPipeline(_raycastComputePipeline);
-        commandList.SetComputeResourceSet(0, _raycastComputeSet);
-        commandList.Dispatch(
-            (uint)((request.Width + 7) / 8),
-            (uint)((request.Height + 7) / 8),
-            1);
-        commandList.End();
-
-        graphicsDevice.SubmitCommands(commandList);
+        _raycastDispatchX = (uint)((request.Width + 7) / 8);
+        _raycastDispatchY = (uint)((request.Height + 7) / 8);
         _hasComputeSceneFrame = true;
         _sceneTextureHasFallback = false;
         return true;
@@ -280,6 +284,38 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         _pendingGpuFrames.Add(new PendingGpuFrame(fence, _currentGpuFrameStartTicks));
     }
 
+    private void ThrottleGpuFrames(GraphicsDevice graphicsDevice)
+    {
+        PollCompletedGpuFrames();
+        while (_pendingGpuFrames.Count >= MaxGpuFramesInFlight)
+        {
+            WaitForGpuFrame(graphicsDevice, _pendingGpuFrames[0]);
+            CompleteGpuFrame(0);
+        }
+    }
+
+    private void WaitForPendingGpuFrames(GraphicsDevice graphicsDevice)
+    {
+        PollCompletedGpuFrames();
+        while (_pendingGpuFrames.Count > 0)
+        {
+            WaitForGpuFrame(graphicsDevice, _pendingGpuFrames[0]);
+            CompleteGpuFrame(0);
+        }
+    }
+
+    private static void WaitForGpuFrame(GraphicsDevice graphicsDevice, PendingGpuFrame pendingFrame)
+    {
+        if (graphicsDevice.WaitForFence(pendingFrame.Fence, GpuFenceTimeout))
+        {
+            return;
+        }
+
+        throw new InvalidOperationException(
+            $"GPU frame did not complete within {GpuFenceTimeout.TotalSeconds:0.#} seconds. " +
+            "The Vulkan backend stopped submitting new frames to avoid a silent driver stall.");
+    }
+
     private void PollCompletedGpuFrames()
     {
         for (int i = _pendingGpuFrames.Count - 1; i >= 0; i--)
@@ -290,10 +326,16 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
                 continue;
             }
 
-            _performanceStats.RecordGpuFrameSince(pendingFrame.StartTicks);
-            pendingFrame.Fence.Dispose();
-            _pendingGpuFrames.RemoveAt(i);
+            CompleteGpuFrame(i);
         }
+    }
+
+    private void CompleteGpuFrame(int index)
+    {
+        PendingGpuFrame pendingFrame = _pendingGpuFrames[index];
+        _performanceStats.RecordGpuFrameSince(pendingFrame.StartTicks);
+        pendingFrame.Fence.Dispose();
+        _pendingGpuFrames.RemoveAt(index);
     }
 
     private long EstimateVramBytes()
@@ -398,6 +440,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         GraphicsDevice graphicsDevice = RequireGraphicsDevice();
         ResourceFactory factory = graphicsDevice.ResourceFactory;
 
+        WaitForPendingGpuFrames(graphicsDevice);
         _compositeResourceSet?.Dispose();
         _compositeResourceSet = null;
         _raycastComputeSet?.Dispose();
@@ -442,6 +485,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         GraphicsDevice graphicsDevice = RequireGraphicsDevice();
         ResourceFactory factory = graphicsDevice.ResourceFactory;
 
+        WaitForPendingGpuFrames(graphicsDevice);
         _compositeResourceSet?.Dispose();
         _compositeResourceSet = null;
         _overlayTextureView?.Dispose();
@@ -640,9 +684,15 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
             return;
         }
 
+        GraphicsDevice graphicsDevice = RequireGraphicsDevice();
+        if (buffer is not null)
+        {
+            WaitForPendingGpuFrames(graphicsDevice);
+        }
+
         int newCapacity = Math.Max(requiredCount, Math.Max(1, capacity * 2));
         buffer?.Dispose();
-        buffer = RequireGraphicsDevice().ResourceFactory.CreateBuffer(new BufferDescription(
+        buffer = graphicsDevice.ResourceFactory.CreateBuffer(new BufferDescription(
             (uint)(newCapacity * stride),
             BufferUsage.StructuredBufferReadOnly,
             (uint)stride));
