@@ -5,10 +5,10 @@ namespace Pixagen.Core.App;
 
 public sealed class EngineOptions
 {
-    public int WindowWidth { get; init; } = 1920;
-    public int WindowHeight { get; init; } = 1080;
-    public int CellPixelSize { get; init; } = 4;
-    public int TargetFps { get; init; } = 60;
+    public int WindowWidth { get; init; }
+    public int WindowHeight { get; init; }
+    public int CellPixelSize { get; init; }
+    public int TargetFps { get; init; }
     public bool RunSingleFrame { get; init; }
     public bool CaptureMouse { get; init; } = true;
     public bool ShowCursor { get; init; }
@@ -20,7 +20,7 @@ public sealed class EngineOptions
 
     public static EngineOptions FromArgs(string[] args)
     {
-        (int windowWidth, int windowHeight) = ParseResolution(args, "--window-size", defaultWidth: 1280, defaultHeight: 720);
+        (int windowWidth, int windowHeight) = ParseResolution(args, "--window-size", defaultWidth: 1920, defaultHeight: 1080);
 
         return new EngineOptions
         {
@@ -37,7 +37,7 @@ public sealed class EngineOptions
                 ParseNullableInt(args, "--cell-pixel-size") ??
                     ParseNullableInt(args, "--pixel-size") ??
                     ParseNullableInt(args, "--font-size") ??
-                    8),
+                    4),
             ScenePath = ParseNullableString(args, "--scene"),
             SaveDefaultScenePath = ParseNullableString(args, "--save-default-scene"),
             RenderSettings = ParseRenderSettings(args)
@@ -144,7 +144,7 @@ public sealed class EngineOptions
 
     private static string? ParseNullableString(string[] args, string name)
     {
-        string? value = null;
+        string? value = "Content/Scenes/default.scene.json";
         for (int i = 0; i < args.Length; i++)
         {
             string arg = args[i];
