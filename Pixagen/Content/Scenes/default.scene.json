@@ -1,18 +1,21 @@
 {
   "version": 1,
   "id": "default",
-  "name": "Default Scene",
+  "name": "Vertical FPS Prototype",
   "objects": [
     {
-      "id": "fps-character",
-      "name": "FPS Character",
       "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "fps-character",
+          "name": "FPS Character"
+        },
         {
           "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
           "position": {
             "x": 0,
             "y": 0,
-            "z": -6
+            "z": -16
           },
           "rotation": {
             "x": 0,
@@ -81,15 +84,18 @@
       ],
       "children": [
         {
-          "id": "fps-character-camera",
-          "name": "FPS Character Camera",
           "components": [
+            {
+              "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+              "id": "fps-character-camera",
+              "name": "FPS Character Camera"
+            },
             {
               "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
               "position": {
                 "x": 0,
                 "y": 0.875,
-                "z": -6
+                "z": -16
               },
               "rotation": {
                 "x": 0,
@@ -127,7 +133,7 @@
               "projectionPlaneDistance": 1,
               "viewportHalfWidth": 1,
               "viewportHalfHeight": 0.5625,
-              "maxDistance": 32
+              "maxDistance": 96
             },
             {
               "type": "Pixagen.Game.Features.FPSCharacterFeature.Components.FPSCharacterCamera",
@@ -141,21 +147,24 @@
       ]
     },
     {
-      "id": "main-light",
-      "name": "Main Light",
       "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "main-light",
+          "name": "Main Light"
+        },
         {
           "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
           "position": {
-            "x": -4,
-            "y": 6,
-            "z": -4
+            "x": -18,
+            "y": 16,
+            "z": -12
           },
           "rotation": {
-            "x": -0.7505326881073415,
-            "y": -0.37526634405367076,
+            "x": -0.7171023830305785,
+            "y": -0.32595562865026295,
             "z": 0,
-            "w": 0.5439447166863829
+            "w": 0.6160495926160365
           },
           "scale": {
             "x": 1,
@@ -175,15 +184,18 @@
       "children": []
     },
     {
-      "id": "ground",
-      "name": "Ground",
       "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "ground",
+          "name": "Ground"
+        },
         {
           "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
           "position": {
             "x": 0,
             "y": -1,
-            "z": 0
+            "z": 12
           },
           "rotation": {
             "x": 0,
@@ -192,9 +204,9 @@
             "w": 1
           },
           "scale": {
-            "x": 96,
+            "x": 64,
             "y": 1,
-            "z": 96
+            "z": 84
           }
         },
         {
@@ -203,11 +215,11 @@
         },
         {
           "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
-          "color": "#67A970",
+          "color": "#6C9E71",
           "texture": {
             "asset": "checker.ppm",
-            "tilingX": 16,
-            "tilingY": 16,
+            "tilingX": 12,
+            "tilingY": 18,
             "offsetX": 0,
             "offsetY": 0
           },
@@ -225,9 +237,9 @@
           "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
           "shape": "box",
           "size": {
-            "x": 96,
+            "x": 64,
             "y": 0.05000000004656613,
-            "z": 96
+            "z": 84
           },
           "radius": 0.5,
           "length": 1
@@ -239,15 +251,18 @@
       "children": []
     },
     {
-      "id": "red-sphere",
-      "name": "Red Sphere",
       "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "wall-left",
+          "name": "Left Boundary Wall"
+        },
         {
           "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
           "position": {
-            "x": -2,
-            "y": 0,
-            "z": 4
+            "x": -32,
+            "y": 1.5,
+            "z": 12
           },
           "rotation": {
             "x": 0,
@@ -257,68 +272,8 @@
           },
           "scale": {
             "x": 1,
-            "y": 1,
-            "z": 1
-          }
-        },
-        {
-          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
-          "asset": "sphere.obj"
-        },
-        {
-          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
-          "color": "#E85C4C",
-          "shader": "lit"
-        },
-        {
-          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
-          "kind": "static",
-          "mass": 1,
-          "friction": 1,
-          "maximumRecoveryVelocity": 2,
-          "lockRotation": false
-        },
-        {
-          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
-          "shape": "sphere",
-          "size": {
-            "x": 1,
-            "y": 1,
-            "z": 1
-          },
-          "radius": 1,
-          "length": 1
-        },
-        {
-          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
-        },
-        {
-          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
-        }
-      ],
-      "children": []
-    },
-    {
-      "id": "yellow-cube",
-      "name": "Yellow Cube",
-      "components": [
-        {
-          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
-          "position": {
-            "x": 0,
-            "y": 0,
-            "z": 5
-          },
-          "rotation": {
-            "x": 0,
-            "y": 0.25882302806712687,
-            "z": 0,
-            "w": 0.9659247591625899
-          },
-          "scale": {
-            "x": 1.5,
-            "y": 1.5,
-            "z": 1.5
+            "y": 5,
+            "z": 84
           }
         },
         {
@@ -327,7 +282,7 @@
         },
         {
           "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
-          "color": "#E0C556",
+          "color": "#4A5560",
           "shader": "lit"
         },
         {
@@ -342,9 +297,9 @@
           "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
           "shape": "box",
           "size": {
-            "x": 1.5,
-            "y": 1.5,
-            "z": 1.5
+            "x": 1,
+            "y": 5,
+            "z": 84
           },
           "radius": 0.5,
           "length": 1
@@ -359,15 +314,18 @@
       "children": []
     },
     {
-      "id": "cyan-sphere",
-      "name": "Cyan Sphere",
       "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "wall-right",
+          "name": "Right Boundary Wall"
+        },
         {
           "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
           "position": {
-            "x": 2,
-            "y": 0.5,
-            "z": 7
+            "x": 32,
+            "y": 1.5,
+            "z": 12
           },
           "rotation": {
             "x": 0,
@@ -376,18 +334,18 @@
             "w": 1
           },
           "scale": {
-            "x": 1.5,
-            "y": 1.5,
-            "z": 1.5
+            "x": 1,
+            "y": 5,
+            "z": 84
           }
         },
         {
           "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
-          "asset": "sphere.obj"
+          "asset": "cube.obj"
         },
         {
           "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
-          "color": "#79D6DA",
+          "color": "#4A5560",
           "shader": "lit"
         },
         {
@@ -400,13 +358,13 @@
         },
         {
           "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
-          "shape": "sphere",
+          "shape": "box",
           "size": {
             "x": 1,
-            "y": 1,
-            "z": 1
+            "y": 5,
+            "z": 84
           },
-          "radius": 1.5,
+          "radius": 0.5,
           "length": 1
         },
         {
@@ -419,115 +377,1152 @@
       "children": []
     },
     {
-      "id": "moving-blue-cube",
-      "name": "Moving Blue Cube",
       "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "wall-front",
+          "name": "Spawn Boundary Wall"
+        },
         {
           "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
           "position": {
-            "x": -4,
+            "x": 0,
+            "y": 1.5,
+            "z": -30
+          },
+          "rotation": {
+            "x": 0,
             "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 64,
+            "y": 5,
+            "z": 1
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#4A5560",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 64,
+            "y": 5,
+            "z": 1
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "wall-back",
+          "name": "Tower Boundary Wall"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 0,
+            "y": 1.5,
+            "z": 54
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 64,
+            "y": 5,
+            "z": 1
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#4A5560",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 64,
+            "y": 5,
+            "z": 1
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "left-training-rail",
+          "name": "Left Training Rail"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": -2.8500000000931323,
+            "y": 0.6499999999068677,
+            "z": -5.5
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 0.3200000000651926,
+            "y": 1.3000000000465661,
+            "z": 13.5
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#5B6772",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 0.3200000000651926,
+            "y": 1.3000000000465661,
+            "z": 13.5
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "right-training-rail",
+          "name": "Right Training Rail"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 2.8500000000931323,
+            "y": 0.6499999999068677,
+            "z": -5.5
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 0.3200000000651926,
+            "y": 1.3000000000465661,
+            "z": 13.5
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#5B6772",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 0.3200000000651926,
+            "y": 1.3000000000465661,
+            "z": 13.5
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "left-ramp-rail",
+          "name": "Left Ramp Rail"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 0.44999999995343387,
+            "y": 1.3500000000931323,
+            "z": 8.899999999906868
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 0.3200000000651926,
+            "y": 1.25,
+            "z": 6.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#5B6772",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 0.3200000000651926,
+            "y": 1.25,
+            "z": 6.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "right-ramp-rail",
+          "name": "Right Ramp Rail"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 5.949999999953434,
+            "y": 1.3500000000931323,
+            "z": 8.899999999906868
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 0.3200000000651926,
+            "y": 1.25,
+            "z": 6.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#5B6772",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 0.3200000000651926,
+            "y": 1.25,
+            "z": 6.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-guide-wall-left",
+          "name": "Tower Guide Wall Left"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 10.199999999953434,
+            "y": 2.050000000046566,
+            "z": 22.100000000093132
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 0.35000000009313226,
+            "y": 1.5,
+            "z": 7.399999999906868
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#5B6772",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 0.35000000009313226,
+            "y": 1.5,
+            "z": 7.399999999906868
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-guide-wall-right",
+          "name": "Tower Guide Wall Right"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 16.800000000046566,
+            "y": 2.050000000046566,
+            "z": 22.100000000093132
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 0.35000000009313226,
+            "y": 1.5,
+            "z": 7.399999999906868
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#5B6772",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 0.35000000009313226,
+            "y": 1.5,
+            "z": 7.399999999906868
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "spawn-step-01",
+          "name": "Spawn Step 01"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 0,
+            "y": -0.10000000009313226,
+            "z": -12
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 5,
+            "y": 0.30000000004656613,
+            "z": 2.3999999999068677
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#858E97",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5,
+            "y": 0.30000000004656613,
+            "z": 2.3999999999068677
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "spawn-step-02",
+          "name": "Spawn Step 02"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 0,
+            "y": 0.1699999999254942,
+            "z": -9.199999999953434
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 5,
+            "y": 0.30000000004656613,
+            "z": 2.3999999999068677
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8E979E",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5,
+            "y": 0.30000000004656613,
+            "z": 2.3999999999068677
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "spawn-step-03",
+          "name": "Spawn Step 03"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 0,
+            "y": 0.43999999994412065,
+            "z": -6.399999999906868
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 5,
+            "y": 0.30000000004656613,
+            "z": 2.3999999999068677
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#979FA4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5,
+            "y": 0.30000000004656613,
+            "z": 2.3999999999068677
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "spawn-step-04",
+          "name": "Spawn Step 04"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 0,
+            "y": 0.7099999999627471,
+            "z": -3.6000000000931323
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 5,
+            "y": 0.30000000004656613,
+            "z": 2.3999999999068677
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#A0A6A9",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5,
+            "y": 0.30000000004656613,
+            "z": 2.3999999999068677
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "spawn-step-05",
+          "name": "Spawn Step 05"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 0,
+            "y": 0.9799999999813735,
+            "z": -0.8000000000465661
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 5,
+            "y": 0.30000000004656613,
+            "z": 2.3999999999068677
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#A9ADAE",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5,
+            "y": 0.30000000004656613,
+            "z": 2.3999999999068677
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "first-deck",
+          "name": "First Deck"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 0,
+            "y": 1.1799999999348074,
+            "z": 2.8999999999068677
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 7,
+            "y": 0.3600000001024455,
+            "z": 4.199999999953434
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#909FAE",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 7,
+            "y": 0.3600000001024455,
+            "z": 4.199999999953434
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "first-ramp",
+          "name": "First Angled Ramp"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 3.199999999953434,
+            "y": 1.5200000000186265,
+            "z": 8.899999999906868
+          },
+          "rotation": {
+            "x": -0.02999802934937179,
+            "y": 0,
+            "z": 0,
+            "w": 0.9995499579235911
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.2800000000279397,
+            "z": 6.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9AA29E",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.2800000000279397,
+            "z": 6.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "bridge-start",
+          "name": "Bridge Start"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 3.5,
+            "y": 1.6399999998975545,
+            "z": 14.199999999953434
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 4.5,
+            "y": 0.3200000000651926,
+            "z": 3.199999999953434
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#7894A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 4.5,
+            "y": 0.3200000000651926,
+            "z": 3.199999999953434
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "bridge-end",
+          "name": "Bridge End"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 14.5,
+            "y": 1.6399999998975545,
+            "z": 14.199999999953434
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 4.5,
+            "y": 0.3200000000651926,
+            "z": 3.199999999953434
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#7894A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 4.5,
+            "y": 0.3200000000651926,
+            "z": 3.199999999953434
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-approach-ramp",
+          "name": "Tower Approach Ramp"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 13.5,
+            "y": 2.0200000000186265,
+            "z": 18.899999999906868
+          },
+          "rotation": {
+            "x": -0.02999802934937179,
+            "y": 0,
+            "z": 0,
+            "w": 0.9995499579235911
+          },
+          "scale": {
+            "x": 6.199999999953434,
+            "y": 0.2800000000279397,
+            "z": 6
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#959F98",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 6.199999999953434,
+            "y": 0.2800000000279397,
             "z": 6
           },
-          "rotation": {
-            "x": 0,
-            "y": 0,
-            "z": 0,
-            "w": 1
-          },
-          "scale": {
-            "x": 1,
-            "y": 1,
-            "z": 1
-          }
-        },
-        {
-          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
-          "positionDelta": {
-            "x": 0,
-            "y": 0,
-            "z": 0
-          },
-          "rotationAxis": {
-            "x": 0,
-            "y": 0,
-            "z": 0
-          },
-          "rotationAngleDelta": 0,
-          "yawDelta": 0,
-          "pitchDelta": 0,
-          "rollDelta": 0
-        },
-        {
-          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
-          "asset": "cube.obj"
-        },
-        {
-          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
-          "color": "#5B8DFF",
-          "shader": "lit"
-        },
-        {
-          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
-          "kind": "kinematic",
-          "mass": 1,
-          "friction": 1,
-          "maximumRecoveryVelocity": 2,
-          "lockRotation": false
-        },
-        {
-          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
-          "shape": "box",
-          "size": {
-            "x": 1,
-            "y": 1,
-            "z": 1
-          },
           "radius": 0.5,
           "length": 1
         },
         {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
           "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
-        },
-        {
-          "type": "Pixagen.Game.Features.SharedFeature.Components.RotationMotion",
-          "axis": {
-            "x": 0,
-            "y": 1,
-            "z": 0
-          },
-          "anglePerSecond": 1.3999999999068677,
-          "localSpace": false
-        },
-        {
-          "type": "Pixagen.Game.Features.SharedFeature.Components.LerpMovement",
-          "from": {
-            "x": -4,
-            "y": 0,
-            "z": 5
-          },
-          "to": {
-            "x": -4,
-            "y": 1.5,
-            "z": 8
-          },
-          "duration": 2.199999999953434,
-          "elapsed": 0,
-          "mode": "pingPong"
         }
       ],
       "children": []
     },
     {
-      "id": "moving-green-cube",
-      "name": "Moving Green Cube",
       "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-entry-deck",
+          "name": "Tower Entry Deck"
+        },
         {
           "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
           "position": {
-            "x": -6,
-            "y": 0,
-            "z": 8
+            "x": 13.5,
+            "y": 2.3200000000651926,
+            "z": 24
           },
           "rotation": {
             "x": 0,
@@ -536,27 +1531,10 @@
             "w": 1
           },
           "scale": {
-            "x": 1,
-            "y": 1,
-            "z": 1
+            "x": 8.199999999953434,
+            "y": 0.34000000008381903,
+            "z": 4
           }
-        },
-        {
-          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
-          "positionDelta": {
-            "x": 0,
-            "y": 0,
-            "z": 0
-          },
-          "rotationAxis": {
-            "x": 0,
-            "y": 0,
-            "z": 0
-          },
-          "rotationAngleDelta": 0,
-          "yawDelta": 0,
-          "pitchDelta": 0,
-          "rollDelta": 0
         },
         {
           "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
@@ -564,12 +1542,12 @@
         },
         {
           "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
-          "color": "#5DD280",
+          "color": "#849EB1",
           "shader": "lit"
         },
         {
           "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
-          "kind": "kinematic",
+          "kind": "static",
           "mass": 1,
           "friction": 1,
           "maximumRecoveryVelocity": 2,
@@ -579,39 +1557,235 @@
           "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
           "shape": "box",
           "size": {
-            "x": 1,
-            "y": 1,
-            "z": 1
+            "x": 8.199999999953434,
+            "y": 0.34000000008381903,
+            "z": 4
           },
           "radius": 0.5,
           "length": 1
         },
         {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
           "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "side-physics-pad",
+          "name": "Side Physics Pad"
         },
         {
-          "type": "Pixagen.Game.Features.SharedFeature.Components.RotationMotion",
-          "axis": {
-            "x": 0,
-            "y": 1,
-            "z": 1
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": -10,
+            "y": 0.10000000009313226,
+            "z": -7
           },
-          "anglePerSecond": 1.1000000000931323,
-          "localSpace": false
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 7,
+            "y": 0.35000000009313226,
+            "z": 6
+          }
         },
         {
-          "type": "Pixagen.Game.Features.SharedFeature.Components.LerpMovement",
-          "from": {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9A836C",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 7,
+            "y": 0.35000000009313226,
+            "z": 6
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "side-return-ramp",
+          "name": "Side Return Ramp"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
             "x": -6,
+            "y": 0.5500000000465661,
+            "z": -1.5
+          },
+          "rotation": {
+            "x": -0.06994737195782363,
             "y": 0,
+            "z": 0,
+            "w": 0.9975506830960512
+          },
+          "scale": {
+            "x": 5,
+            "y": 0.2800000000279397,
+            "z": 7
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#A58C6E",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5,
+            "y": 0.2800000000279397,
             "z": 7
           },
-          "to": {
-            "x": -2.5,
-            "y": 0.75,
-            "z": 8.5
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "moving-bridge-platform",
+          "name": "Moving Bridge Platform"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 7.800000000046566,
+            "y": 1.6399999998975545,
+            "z": 14.199999999953434
           },
-          "duration": 2.800000000046566,
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 4,
+            "y": 0.3200000000651926,
+            "z": 3.199999999953434
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
+          "positionDelta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAngleDelta": 0,
+          "yawDelta": 0,
+          "pitchDelta": 0,
+          "rollDelta": 0
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#54A6DC",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "kinematic",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": true
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 4,
+            "y": 0.3200000000651926,
+            "z": 3.199999999953434
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.LerpMovement",
+          "from": {
+            "x": 7.800000000046566,
+            "y": 1.6399999998975545,
+            "z": 14.199999999953434
+          },
+          "to": {
+            "x": 10.199999999953434,
+            "y": 1.6399999998975545,
+            "z": 14.199999999953434
+          },
+          "duration": 3.199999999953434,
           "elapsed": 0,
           "mode": "pingPong"
         }
@@ -619,15 +1793,2955 @@
       "children": []
     },
     {
-      "id": "moving-magenta-sphere",
-      "name": "Moving Magenta Sphere",
       "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-lift-platform",
+          "name": "Tower Lift Platform"
+        },
         {
           "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
           "position": {
-            "x": 4,
+            "x": 22.5,
+            "y": 0.25,
+            "z": 28
+          },
+          "rotation": {
+            "x": 0,
             "y": 0,
-            "z": 5
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 4.199999999953434,
+            "y": 0.34000000008381903,
+            "z": 4.199999999953434
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
+          "positionDelta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAngleDelta": 0,
+          "yawDelta": 0,
+          "pitchDelta": 0,
+          "rollDelta": 0
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#61CF94",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "kinematic",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": true
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 4.199999999953434,
+            "y": 0.34000000008381903,
+            "z": 4.199999999953434
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.LerpMovement",
+          "from": {
+            "x": 22.5,
+            "y": 0.25,
+            "z": 28
+          },
+          "to": {
+            "x": 22.5,
+            "y": 5.399999999906868,
+            "z": 28
+          },
+          "duration": 4.5,
+          "elapsed": 0,
+          "mode": "pingPong"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "practice-platform",
+          "name": "Practice Platform"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": -13,
+            "y": 0.6499999999068677,
+            "z": 1
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 4.199999999953434,
+            "y": 0.34000000008381903,
+            "z": 3.3999999999068677
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
+          "positionDelta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAngleDelta": 0,
+          "yawDelta": 0,
+          "pitchDelta": 0,
+          "rollDelta": 0
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#CB77D4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "kinematic",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": true
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 4.199999999953434,
+            "y": 0.34000000008381903,
+            "z": 3.3999999999068677
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.LerpMovement",
+          "from": {
+            "x": -13,
+            "y": 0.6499999999068677,
+            "z": 1
+          },
+          "to": {
+            "x": -8,
+            "y": 1.25,
+            "z": 4
+          },
+          "duration": 4,
+          "elapsed": 0,
+          "mode": "pingPong"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-core",
+          "name": "Tower Core"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 13.5,
+            "y": 5.399999999906868,
+            "z": 32
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 2.6000000000931323,
+            "y": 10.800000000046566,
+            "z": 2.6000000000931323
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#626470",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 2.6000000000931323,
+            "y": 10.800000000046566,
+            "z": 2.6000000000931323
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-00",
+          "name": "Tower Spiral Step 00"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 13.5,
+            "y": 2.3500000000931323,
+            "z": 26.199999999953434
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-01",
+          "name": "Tower Spiral Step 01"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 14.87867523333989,
+            "y": 2.5700000000651926,
+            "z": 26.36623974586837
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.11971768410876393,
+            "z": 0,
+            "w": 0.9928079755045474
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-02",
+          "name": "Tower Spiral Step 02"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 16.178319218102843,
+            "y": 2.790000000037253,
+            "z": 26.85542944795452
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.23770700162276626,
+            "z": 0,
+            "w": 0.9713369042146951
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-03",
+          "name": "Tower Spiral Step 03"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 17.32443109736778,
+            "y": 3.0100000000093132,
+            "z": 27.639526770915836
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.3522765052039176,
+            "z": 0,
+            "w": 0.9358959686942399
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-04",
+          "name": "Tower Spiral Step 04"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 18.25131109612994,
+            "y": 3.2299999999813735,
+            "z": 28.673584080766886
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.4617800358682871,
+            "z": 0,
+            "w": 0.8869944750331342
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-05",
+          "name": "Tower Spiral Step 05"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 18.905826698523015,
+            "y": 3.449999999953434,
+            "z": 29.898325023939833
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.564642698969692,
+            "z": 0,
+            "w": 0.8253354604821652
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-06",
+          "name": "Tower Spiral Step 06"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 19.250458419555798,
+            "y": 3.669999999925494,
+            "z": 31.24354248936288
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.6593846825417131,
+            "z": 0,
+            "w": 0.7518056759145111
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-07",
+          "name": "Tower Spiral Step 07"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 19.26545057282783,
+            "y": 3.8899999998975545,
+            "z": 32.63212316296995
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.7446430805139244,
+            "z": 0,
+            "w": 0.6674628360196948
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-08",
+          "name": "Tower Spiral Step 08"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 18.949943747371435,
+            "y": 4.1100000001024455,
+            "z": 33.98446797672659
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.8191914316266775,
+            "z": 0,
+            "w": 0.573520181234926
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-rest-landing-08",
+          "name": "Tower Rest Landing 08"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 18.949943747371435,
+            "y": 4.1399999998975545,
+            "z": 33.98446797672659
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.8191914316266775,
+            "z": 0,
+            "w": 0.573520181234926
+          },
+          "scale": {
+            "x": 6.600000000093132,
+            "y": 0.30000000004656613,
+            "z": 3.3999999999068677
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#7994AA",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 6.600000000093132,
+            "y": 0.30000000004656613,
+            "z": 3.3999999999068677
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-09",
+          "name": "Tower Spiral Step 09"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 18.322024072520435,
+            "y": 4.330000000074506,
+            "z": 35.223055048147216
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.8819573924411088,
+            "z": 0,
+            "w": 0.4713291395455599
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-10",
+          "name": "Tower Spiral Step 10"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 17.417686447268352,
+            "y": 4.550000000046566,
+            "z": 36.2768835502211
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.9320382662117481,
+            "z": 0,
+            "w": 0.36235986300744116
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-11",
+          "name": "Tower Spiral Step 11"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 16.288771166931838,
+            "y": 4.7700000000186265,
+            "z": 37.08554376428947
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.968714028596878,
+            "z": 0,
+            "w": 0.24817963410168886
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-12",
+          "name": "Tower Spiral Step 12"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 14.999992228113115,
+            "y": 4.989999999990687,
+            "z": 37.60268001188524
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.9914576215669513,
+            "z": 0,
+            "w": 0.1304292322602123
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-13",
+          "name": "Tower Spiral Step 13"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 13.625227659242228,
+            "y": 5.209999999962747,
+            "z": 37.79864794877358
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.9999417092185467,
+            "z": 0,
+            "w": 0.010797146940603852
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-14",
+          "name": "Tower Spiral Step 14"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 12.24328453373164,
+            "y": 5.429999999934807,
+            "z": 37.662213898962364
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.9940426123794168,
+            "z": 0,
+            "w": 0.10899213352240622
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-15",
+          "name": "Tower Spiral Step 15"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 10.933381428942084,
+            "y": 5.649999999906868,
+            "z": 37.201198814669624
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.9738465666305274,
+            "z": 0,
+            "w": 0.22720665647648275
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-16",
+          "name": "Tower Spiral Step 16"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 9.77060729614459,
+            "y": 5.870000000111759,
+            "z": 36.442029948113486
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.939644584665075,
+            "z": 0,
+            "w": 0.34215209260582924
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-rest-landing-16",
+          "name": "Tower Rest Landing 16"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 9.77060729614459,
+            "y": 5.899999999906868,
+            "z": 36.442029948113486
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.939644584665075,
+            "z": 0,
+            "w": 0.34215209260582924
+          },
+          "scale": {
+            "x": 6.600000000093132,
+            "y": 0.30000000004656613,
+            "z": 3.3999999999068677
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#7994AA",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 6.600000000093132,
+            "y": 0.30000000004656613,
+            "z": 3.3999999999068677
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-17",
+          "name": "Tower Spiral Step 17"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 8.821617058245465,
+            "y": 6.090000000083819,
+            "z": 35.42822593334131
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.8919281687121838,
+            "z": 0,
+            "w": 0.4521771133877337
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-18",
+          "name": "Tower Spiral Step 18"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 8.140810679411516,
+            "y": 6.310000000055879,
+            "z": 34.21790212276392
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.8313832876738161,
+            "z": 0,
+            "w": 0.5556994050275534
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-19",
+          "name": "Tower Spiral Step 19"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 7.767214738763869,
+            "y": 6.53000000002794,
+            "z": 32.88043917925097
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.75888063875027,
+            "z": 0,
+            "w": 0.6512296707369387
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-20",
+          "name": "Tower Spiral Step 20"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 7.722245268756524,
+            "y": 6.75,
+            "z": 31.492505896138027
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.6754631900694221,
+            "z": 0,
+            "w": 0.7373936872463673
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-21",
+          "name": "Tower Spiral Step 21"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 8.008480101590976,
+            "y": 6.96999999997206,
+            "z": 30.133664230350405
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.582330817822367,
+            "z": 0,
+            "w": 0.8129519163630903
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-22",
+          "name": "Tower Spiral Step 22"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 8.609511097194627,
+            "y": 7.189999999944121,
+            "z": 28.881808490259573
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.48082331218756735,
+            "z": 0,
+            "w": 0.8768175081349909
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-23",
+          "name": "Tower Spiral Step 23"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 9.490884724771604,
+            "y": 7.409999999916181,
+            "z": 27.80870011704974
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.37240099208429456,
+            "z": 0,
+            "w": 0.9280719268135726
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-24",
+          "name": "Tower Spiral Step 24"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 10.602077077841386,
+            "y": 7.629999999888241,
+            "z": 26.97585402894765
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.25862333620898426,
+            "z": 0,
+            "w": 0.9659782450180501
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-rest-landing-24",
+          "name": "Tower Rest Landing 24"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 10.602077077841386,
+            "y": 7.659999999916181,
+            "z": 26.97585402894765
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.25862333620898426,
+            "z": 0,
+            "w": 0.9659782450180501
+          },
+          "scale": {
+            "x": 6.600000000093132,
+            "y": 0.30000000004656613,
+            "z": 3.3999999999068677
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#7994AA",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 6.600000000093132,
+            "y": 0.30000000004656613,
+            "z": 3.3999999999068677
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-25",
+          "name": "Tower Spiral Step 25"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 11.879390110494569,
+            "y": 7.850000000093132,
+            "z": 26.431012337328866
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.14112553605809808,
+            "z": 0,
+            "w": 0.9899917086586356
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-26",
+          "name": "Tower Spiral Step 26"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 13.249603065894917,
+            "y": 8.070000000065193,
+            "z": 26.205407574772835
+          },
+          "rotation": {
+            "x": 0,
+            "y": -0.021592897828668356,
+            "z": 0,
+            "w": 0.9997668461874127
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-27",
+          "name": "Tower Spiral Step 27"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 14.634169787634164,
+            "y": 8.290000000037253,
+            "z": 26.311972319614142
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.0982538249809295,
+            "z": 0,
+            "w": 0.995161386905238
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-28",
+          "name": "Tower Spiral Step 28"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 15.953721303492785,
+            "y": 8.510000000009313,
+            "z": 26.744597849436104
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.21667982125654817,
+            "z": 0,
+            "w": 0.9762427234090865
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-29",
+          "name": "Tower Spiral Step 29"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 17.13261557579972,
+            "y": 8.729999999981374,
+            "z": 27.478484316263348
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.3319878054317087,
+            "z": 0,
+            "w": 0.9432836780324578
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-30",
+          "name": "Tower Spiral Step 30"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 18.103273610351607,
+            "y": 8.949999999953434,
+            "z": 28.471562375780195
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.4425214927177876,
+            "z": 0,
+            "w": 0.8967578986193985
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#9CA6B4",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-spiral-step-31",
+          "name": "Tower Spiral Step 31"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 18.810053356923163,
+            "y": 9.169999999925494,
+            "z": 29.66690477100201
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0.5466913438867778,
+            "z": 0,
+            "w": 0.8373342074919492
+          },
+          "scale": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#8694A6",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.199999999953434,
+            "y": 0.30000000004656613,
+            "z": 2.800000000046566
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-top-entry-landing",
+          "name": "Tower Top Entry Landing"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 16.755026678321883,
+            "y": 9.350000000093132,
+            "z": 30.43345238547772
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 4.199999999953434,
+            "y": 0.2800000000279397,
+            "z": 2.6000000000931323
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#89A0B8",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 4.199999999953434,
+            "y": 0.2800000000279397,
+            "z": 2.6000000000931323
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-top-platform",
+          "name": "Tower Top Platform"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 13.300000000046566,
+            "y": 9.389999999897555,
+            "z": 32.39999999990687
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 5.600000000093132,
+            "y": 0.3200000000651926,
+            "z": 5.600000000093132
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#809CB5",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.600000000093132,
+            "y": 0.3200000000651926,
+            "z": 5.600000000093132
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-top-rail-north",
+          "name": "Tower Top North Rail"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 13.300000000046566,
+            "y": 9.909999999916181,
+            "z": 35.199999999953434
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 5.600000000093132,
+            "y": 0.75,
+            "z": 0.35000000009313226
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#545F6B",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 5.600000000093132,
+            "y": 0.75,
+            "z": 0.35000000009313226
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "tower-top-rail-west",
+          "name": "Tower Top West Rail"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 10.5,
+            "y": 9.909999999916181,
+            "z": 32.39999999990687
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 0.35000000009313226,
+            "y": 0.75,
+            "z": 5.600000000093132
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#545F6B",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "static",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 0.35000000009313226,
+            "y": 0.75,
+            "z": 5.600000000093132
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.IsStaticRender"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "physics-blue-cube",
+          "name": "Physics Blue Cube"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": -11,
+            "y": 1,
+            "z": -8
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 1.1000000000931323,
+            "y": 1.1000000000931323,
+            "z": 1.1000000000931323
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
+          "positionDelta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAngleDelta": 0,
+          "yawDelta": 0,
+          "pitchDelta": 0,
+          "rollDelta": 0
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#5581EC",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "dynamic",
+          "mass": 1.1999999999534339,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 1.1000000000931323,
+            "y": 1.1000000000931323,
+            "z": 1.1000000000931323
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "physics-yellow-cube",
+          "name": "Physics Yellow Cube"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": -8.5,
+            "y": 1,
+            "z": -5.5
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 1.3000000000465661,
+            "y": 1.3000000000465661,
+            "z": 1.3000000000465661
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
+          "positionDelta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAngleDelta": 0,
+          "yawDelta": 0,
+          "pitchDelta": 0,
+          "rollDelta": 0
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#DBBE48",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "dynamic",
+          "mass": 1.5,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 1.3000000000465661,
+            "y": 1.3000000000465661,
+            "z": 1.3000000000465661
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "physics-orange-crate",
+          "name": "Physics Orange Crate"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": -9.800000000046566,
+            "y": 1.1000000000931323,
+            "z": 1.5
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
+          "positionDelta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAngleDelta": 0,
+          "yawDelta": 0,
+          "pitchDelta": 0,
+          "rollDelta": 0
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "cube.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#DD7B48",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "dynamic",
+          "mass": 1,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "box",
+          "size": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          },
+          "radius": 0.5,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "physics-red-ball",
+          "name": "Physics Red Ball"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": -6.5,
+            "y": 1.1000000000931323,
+            "z": -7.5
           },
           "rotation": {
             "x": 0,
@@ -664,17 +4778,13 @@
         },
         {
           "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
-          "color": "#D666D6",
-          "transparent": {
-            "opacity": 0.6499999999068677,
-            "alphaCutoff": 0
-          },
+          "color": "#DD5048",
           "shader": "lit"
         },
         {
           "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
-          "kind": "kinematic",
-          "mass": 1,
+          "kind": "dynamic",
+          "mass": 0.8000000000465661,
           "friction": 1,
           "maximumRecoveryVelocity": 2,
           "lockRotation": false
@@ -692,40 +4802,171 @@
         },
         {
           "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
-        },
-        {
-          "type": "Pixagen.Game.Features.SharedFeature.Components.RotationMotion",
-          "axis": {
-            "x": 1,
-            "y": 1,
-            "z": 0
-          },
-          "anglePerSecond": 2.1000000000931323,
-          "localSpace": false
-        },
-        {
-          "type": "Pixagen.Game.Features.SharedFeature.Components.LerpMovement",
-          "from": {
-            "x": 4,
-            "y": -0.25,
-            "z": 4
-          },
-          "to": {
-            "x": 4,
-            "y": 1.25,
-            "z": 7
-          },
-          "duration": 1.8000000000465661,
-          "elapsed": 0,
-          "mode": "pingPong"
         }
       ],
       "children": []
     },
     {
-      "id": "ui-fps",
-      "name": "FPS Counter",
       "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "physics-cyan-ball",
+          "name": "Physics Cyan Ball"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 18,
+            "y": 3.1000000000931323,
+            "z": 25.5
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 0.6499999999068677,
+            "y": 0.6499999999068677,
+            "z": 0.6499999999068677
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
+          "positionDelta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAngleDelta": 0,
+          "yawDelta": 0,
+          "pitchDelta": 0,
+          "rollDelta": 0
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "sphere.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#5FD9DB",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "dynamic",
+          "mass": 0.6499999999068677,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "sphere",
+          "size": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          },
+          "radius": 0.6499999999068677,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "physics-purple-ball",
+          "name": "Physics Purple Ball"
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
+          "position": {
+            "x": 17.5,
+            "y": 9.100000000093132,
+            "z": 32
+          },
+          "rotation": {
+            "x": 0,
+            "y": 0,
+            "z": 0,
+            "w": 1
+          },
+          "scale": {
+            "x": 0.75,
+            "y": 0.75,
+            "z": 0.75
+          }
+        },
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Velocity",
+          "positionDelta": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAxis": {
+            "x": 0,
+            "y": 0,
+            "z": 0
+          },
+          "rotationAngleDelta": 0,
+          "yawDelta": 0,
+          "pitchDelta": 0,
+          "rollDelta": 0
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Mesh",
+          "asset": "sphere.obj"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.Material",
+          "color": "#B961D3",
+          "shader": "lit"
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
+          "kind": "dynamic",
+          "mass": 0.8000000000465661,
+          "friction": 1,
+          "maximumRecoveryVelocity": 2,
+          "lockRotation": false
+        },
+        {
+          "type": "Pixagen.Game.Features.PhysicsFeature.Components.Collider",
+          "shape": "sphere",
+          "size": {
+            "x": 1,
+            "y": 1,
+            "z": 1
+          },
+          "radius": 0.75,
+          "length": 1
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.ShadowCaster"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "ui-fps",
+          "name": "FPS Counter"
+        },
         {
           "type": "Pixagen.Game.Features.UIFeature.Components.TransformUI",
           "x": 0,
@@ -739,19 +4980,18 @@
           "fontSize": 16
         },
         {
-          "type": "Pixagen.Game.Features.UIFeature.Components.FPSCounterUI",
-          "updateInterval": 0.25,
-          "elapsed": 0,
-          "frames": 0,
-          "value": 0
+          "type": "Pixagen.Game.Features.UIFeature.Components.FPSCounterUI"
         }
       ],
       "children": []
     },
     {
-      "id": "ui-profiler",
-      "name": "Profiler",
       "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "ui-profiler",
+          "name": "Profiler"
+        },
         {
           "type": "Pixagen.Game.Features.UIFeature.Components.TransformUI",
           "x": 0,
@@ -773,9 +5013,12 @@
       "children": []
     },
     {
-      "id": "ui-controls",
-      "name": "Controls Text",
       "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "ui-controls",
+          "name": "Controls Text"
+        },
         {
           "type": "Pixagen.Game.Features.UIFeature.Components.TransformUI",
           "x": 0,
@@ -784,7 +5027,7 @@
         },
         {
           "type": "Pixagen.Game.Features.UIFeature.Components.TextUI",
-          "value": "WASD Space Arrows Mouse | Esc/Ctrl\u002BC exits",
+          "value": "WASD Space Mouse | ramps / tower / moving platforms | Esc/Ctrl\u002BC exits",
           "color": "#F0DB56",
           "fontSize": 16
         }

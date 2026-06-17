@@ -158,6 +158,7 @@ public sealed class EngineBenchmarkContext : IDisposable
                 new RenderResolution(config.RenderWidth, config.RenderHeight),
                 RenderScaleMode.Fixed,
                 ShadowQuality.Full,
+                Fix.FromDouble(0.055),
                 Fix.FromDouble(256),
                 Fix.FromDouble(160))
         };

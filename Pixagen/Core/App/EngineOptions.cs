@@ -29,7 +29,7 @@ public sealed class EngineOptions
             RunSingleFrame = args.Any(arg => string.Equals(arg, "--once", StringComparison.OrdinalIgnoreCase)),
             CaptureMouse = !args.Any(arg => string.Equals(arg, "--no-mouse", StringComparison.OrdinalIgnoreCase)),
             ShowCursor = args.Any(arg => string.Equals(arg, "--show-cursor", StringComparison.OrdinalIgnoreCase)),
-            TargetFps = Math.Max(0, ParseNullableInt(args, "--fps") ?? ParseNullableInt(args, "--target-fps") ?? 60),
+            TargetFps = Math.Max(0, ParseNullableInt(args, "--fps") ?? ParseNullableInt(args, "--target-fps") ?? 90),
             AutoResize = !args.Any(arg => string.Equals(arg, "--fixed-resolution", StringComparison.OrdinalIgnoreCase)),
             Fullscreen = args.Any(arg => string.Equals(arg, "--fullscreen", StringComparison.OrdinalIgnoreCase)),
             CellPixelSize = Math.Max(

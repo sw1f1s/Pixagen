@@ -1,5 +1,3 @@
-using Pixagen.Rendering;
-
 namespace Pixagen.Game.Features.RenderFeature;
 
 public sealed record RenderSettings(
@@ -14,7 +12,7 @@ public sealed record RenderSettings(
         new RenderResolution(480, 270),
         RenderScaleMode.FitToMax,
         ShadowQuality.Full,
-        Fix.FromDouble(0.035),
+        Fix.FromDouble(0.055),
         Fix.FromDouble(256),
         Fix.FromDouble(256));
 }
