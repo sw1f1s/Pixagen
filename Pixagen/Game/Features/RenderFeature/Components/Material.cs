@@ -81,9 +81,3 @@ public readonly struct MaterialTransparency
         AlphaCutoff = alphaCutoff;
     }
 }
-
-public enum MaterialShaderKind
-{
-    Lit,
-    Unlit
-}

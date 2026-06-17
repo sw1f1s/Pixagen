@@ -1,5 +1,4 @@
 using System.Globalization;
-using Pixagen.Game.Features.RenderFeature.Meshes;
 using Pixagen.Game.Features.ResourceFeature.Runtime;
 using Float2 = System.Numerics.Vector2;
 using Float3 = System.Numerics.Vector3;

@@ -1,8 +1,6 @@
 using System.Threading;
 using Pixagen.Ecs.DI;
 using Pixagen.Game.Features.RenderFeature.Components;
-using Pixagen.Game.Features.RenderFeature.Meshes;
-using Pixagen.Game.Features.RenderFeature.Textures;
 using Pixagen.Game.Features.ResourceFeature.Meshes;
 using Pixagen.Game.Features.ResourceFeature.Scenes;
 using Pixagen.Game.Features.ResourceFeature.Shaders;
@@ -12,7 +10,7 @@ using Veldrid;
 
 namespace Pixagen.Game.Features.ResourceFeature.Runtime;
 
-public sealed class ResourceManager : IDisposeInject, IDisposable
+public sealed class ResourceManager : IDisposeInject, IVulkanShaderProvider, IDisposable
 {
     private readonly object _sync = new();
     private readonly MeshResourceStore _meshes = new();
@@ -143,6 +141,11 @@ public sealed class ResourceManager : IDisposeInject, IDisposable
     {
         ThrowIfDisposed();
         return _vulkanShaders.Unload();
+    }
+
+    void IVulkanShaderProvider.UnloadVulkanShaders()
+    {
+        UnloadVulkanShaders();
     }
 
     public SceneDefinition LoadScene(string path)

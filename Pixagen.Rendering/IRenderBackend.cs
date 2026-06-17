@@ -6,7 +6,7 @@ public interface IRenderBackend : IDisposable
     bool IsCloseRequested { get; }
 
     void Initialize(RenderBackendOptions options);
-    void PumpInput(InputState input);
+    void PumpInput(IRenderInputSink input);
     (int Width, int Height) GetFrameBufferSize();
     void Present(FrameBuffer frameBuffer);
 }

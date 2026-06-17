@@ -26,9 +26,9 @@ public sealed class HeadlessRenderBackend : IRenderBackend, IUiOverlayRenderBack
         _height = Math.Max(1, options.WindowHeight);
     }
 
-    public void PumpInput(InputState input)
+    public void PumpInput(IRenderInputSink input)
     {
-        input.Poll();
+        input.BeginFrame();
     }
 
     public (int Width, int Height) GetFrameBufferSize()

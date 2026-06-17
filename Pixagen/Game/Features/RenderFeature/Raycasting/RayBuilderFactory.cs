@@ -1,23 +1,11 @@
 using Pixagen.Game.Features.RenderFeature.Components;
+using Pixagen.Rendering.Raycasting;
 using Float3 = System.Numerics.Vector3;
 
 namespace Pixagen.Game.Features.RenderFeature.Raycasting;
 
-public readonly struct RayBuilder
+public static class RayBuilderFactory
 {
-    public readonly Float3 Origin;
-    public readonly Float3 StartDirection;
-    public readonly Float3 XDelta;
-    public readonly Float3 YDelta;
-
-    private RayBuilder(Float3 origin, Float3 startDirection, Float3 xDelta, Float3 yDelta)
-    {
-        Origin = origin;
-        StartDirection = startDirection;
-        XDelta = xDelta;
-        YDelta = yDelta;
-    }
-
     public static RayBuilder Create(
         int width,
         int height,

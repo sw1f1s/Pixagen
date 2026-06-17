@@ -1,4 +1,4 @@
-namespace Pixagen.Game.Features.RenderFeature;
+namespace Pixagen.Rendering;
 
 public sealed record RenderSettings(
     RenderResolution MaxInternalResolution,
@@ -31,4 +31,10 @@ public enum ShadowQuality
     Off,
     Low,
     Full
+}
+
+public enum MaterialShaderKind
+{
+    Lit,
+    Unlit
 }

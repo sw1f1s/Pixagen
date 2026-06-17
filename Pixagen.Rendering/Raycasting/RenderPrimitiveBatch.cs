@@ -1,4 +1,4 @@
-namespace Pixagen.Game.Features.RenderFeature.Raycasting;
+namespace Pixagen.Rendering.Raycasting;
 
 public sealed class RenderPrimitiveBatch
 {

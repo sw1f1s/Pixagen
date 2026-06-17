@@ -1,27 +1,8 @@
+using Pixagen.Rendering;
+using Pixagen.Rendering.Raycasting;
 using Float3 = System.Numerics.Vector3;
 
 namespace Pixagen.Game.Features.RenderFeature.Raycasting;
-
-public sealed class RaycastShadowBins
-{
-    internal RaycastShadowBins()
-    {
-    }
-
-    public Float3 GridMin { get; internal set; }
-    public Float3 GridMax { get; internal set; } = Float3.One;
-    public float CellSize { get; internal set; } = 1f;
-    public int CellCountX { get; internal set; }
-    public int CellCountY { get; internal set; }
-    public int CellCountZ { get; internal set; }
-    public int CellCount { get; internal set; }
-    public int TriangleCount { get; internal set; }
-    public int IndexCount { get; internal set; }
-    public int MaxRayCells { get; internal set; }
-    public double EstimatedShadowTriangleTests { get; internal set; }
-    public RaycastTileRange[] Ranges { get; internal set; } = [new RaycastTileRange(0, 0)];
-    public int[] TriangleIndices { get; internal set; } = [0];
-}
 
 public sealed class RaycastShadowBinBuilder
 {

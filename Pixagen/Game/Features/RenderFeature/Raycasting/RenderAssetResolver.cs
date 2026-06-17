@@ -1,7 +1,5 @@
 using Pixagen.Ecs.DI;
 using Pixagen.Game.Features.RenderFeature.Components;
-using Pixagen.Game.Features.RenderFeature.Meshes;
-using Pixagen.Game.Features.RenderFeature.Textures;
 using Pixagen.Game.Features.ResourceFeature.Runtime;
 
 namespace Pixagen.Game.Features.RenderFeature.Raycasting;

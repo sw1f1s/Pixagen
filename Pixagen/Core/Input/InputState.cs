@@ -1,6 +1,6 @@
 namespace Pixagen.Core.Input;
 
-public sealed class InputState
+public sealed class InputState : IRenderInputSink
 {
     private readonly HashSet<InputKey> _downKeys = new();
     private readonly HashSet<InputKey> _pressedThisFrame = new();
@@ -37,6 +37,11 @@ public sealed class InputState
         }
 
         _downKeys.Remove(key);
+    }
+
+    public void SetKey(RenderInputKey key, bool isDown)
+    {
+        SetKey((InputKey)key, isDown);
     }
 
     public void AddMouseDelta(float deltaX, float deltaY)

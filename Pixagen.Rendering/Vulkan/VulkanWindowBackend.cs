@@ -1,9 +1,6 @@
 using System.Numerics;
 using Pixagen.Ecs.DI;
-using Pixagen.Game.Features.RenderFeature;
-using Pixagen.Game.Features.RenderFeature.Raycasting;
-using Pixagen.Game.Features.ResourceFeature.Runtime;
-using Pixagen.Game.Features.ResourceFeature.Shaders;
+using Pixagen.Rendering.Raycasting;
 using Veldrid;
 using Veldrid.Sdl2;
 using Veldrid.StartupUtilities;
@@ -14,12 +11,12 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 {
     private const string WindowTitle = "Pixagen";
 
-    private readonly PerformanceStats _performanceStats;
+    private readonly IRenderPerformanceSink _performanceStats;
     private readonly VulkanGpuFrameTracker _gpuFrames;
     private readonly VulkanRenderTargets _targets = new();
     private readonly VulkanCompositePass _compositePass = new();
     private readonly VulkanRaycastComputePass _raycastPass = new();
-    private readonly CustomInject<ResourceManager> _resources = default;
+    private readonly CustomInject<IVulkanShaderProvider> _shaderProvider = default;
     private Sdl2Window? _window;
     private GraphicsDevice? _graphicsDevice;
     private CommandList? _commandList;
@@ -29,7 +26,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
     private int _currentRenderCalls;
     private int _currentPasses;
 
-    public VulkanWindowBackend(PerformanceStats performanceStats)
+    public VulkanWindowBackend(IRenderPerformanceSink performanceStats)
     {
         _performanceStats = performanceStats;
         _gpuFrames = new VulkanGpuFrameTracker(performanceStats);
@@ -89,7 +86,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         WarmUpShaders();
     }
 
-    public void PumpInput(InputState input)
+    public void PumpInput(IRenderInputSink input)
     {
         _gpuFrames.PollCompleted();
         Sdl2Window window = RequireWindow();
@@ -98,7 +95,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         InputSnapshot snapshot = window.PumpEvents();
         foreach (KeyEvent keyEvent in snapshot.KeyEvents)
         {
-            if (VulkanInputMapper.TryMapKey(keyEvent.Key, out InputKey key))
+            if (VulkanInputMapper.TryMapKey(keyEvent.Key, out RenderInputKey key))
             {
                 input.SetKey(key, keyEvent.Down);
             }
@@ -159,10 +156,10 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         }
 
         SubmitCompositePass(graphicsDevice, commandList);
-        _performanceStats.RecordBackendFrame(new BackendPerformanceReport(
+        _performanceStats.RecordBackendFrame(
             _currentRenderCalls,
             _currentPasses,
-            EstimateVramBytes()));
+            EstimateVramBytes());
         ResetFrameState();
     }
 
@@ -286,26 +283,26 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 
     private VulkanShaderResource LoadVulkanShaders(ResourceFactory factory)
     {
-        ResourceManager resources = _resources.Value ??
-            throw new InvalidOperationException($"{nameof(VulkanWindowBackend)} requires {nameof(ResourceManager)}.");
-        return resources.LoadVulkanShaders(factory);
+        IVulkanShaderProvider shaderProvider = _shaderProvider.Value ??
+            throw new InvalidOperationException($"{nameof(VulkanWindowBackend)} requires {nameof(IVulkanShaderProvider)}.");
+        return shaderProvider.LoadVulkanShaders(factory);
     }
 
     private void UnloadVulkanShaders()
     {
-        ResourceManager? resources = _resources.Value;
-        if (resources is null)
+        IVulkanShaderProvider? shaderProvider = _shaderProvider.Value;
+        if (shaderProvider is null)
         {
             return;
         }
 
         try
         {
-            resources.UnloadVulkanShaders();
+            shaderProvider.UnloadVulkanShaders();
         }
         catch (ObjectDisposedException)
         {
-            // Startup failure cleanup can dispose ResourceManager before the backend reaches this path.
+            // Startup failure cleanup can dispose the shader provider before the backend reaches this path.
         }
     }
 }

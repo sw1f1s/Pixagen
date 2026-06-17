@@ -1,6 +1,4 @@
-using Pixagen.Rendering;
-
-namespace Pixagen.Game.Features.RenderFeature.Textures;
+namespace Pixagen.Rendering.Textures;
 
 public sealed class TextureAsset
 {

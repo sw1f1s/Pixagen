@@ -1,5 +1,4 @@
 using System.Globalization;
-using Pixagen.Game.Features.RenderFeature.Textures;
 using Pixagen.Game.Features.ResourceFeature.Runtime;
 
 namespace Pixagen.Game.Features.ResourceFeature.Textures;

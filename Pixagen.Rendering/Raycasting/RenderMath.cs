@@ -1,7 +1,7 @@
 using Float3 = System.Numerics.Vector3;
 using FloatQuaternion = System.Numerics.Quaternion;
 
-namespace Pixagen.Game.Features.RenderFeature.Raycasting;
+namespace Pixagen.Rendering.Raycasting;
 
 public static class RenderMath
 {

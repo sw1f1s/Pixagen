@@ -91,7 +91,7 @@ public sealed class RaycastRenderSystem : IUpdateSystem
             EstimateShadowTriangleTests(shadowBins, shadowSoftness));
         internalResolution = budget.Resolution;
         shadowQuality = budget.ShadowQuality;
-        RayBuilder rayBuilder = RayBuilder.Create(
+        RayBuilder rayBuilder = RayBuilderFactory.Create(
             internalResolution.Width,
             internalResolution.Height,
             transform.Position,
@@ -237,7 +237,11 @@ public sealed class RaycastRenderSystem : IUpdateSystem
         ref LightDirection light = ref _lightDirections.Get(lightEntity);
         return new DirectionalLight(
             RenderMath.ToFloat(transform.Rotation.Normalized.Rotate(Vector3.Forward).Normalized),
-            light);
+            MathF.Max(RenderMath.ToFloat(light.Intensity), 0f),
+            Math.Clamp(RenderMath.ToFloat(light.AmbientIntensity), 0f, 1f),
+            Math.Clamp(RenderMath.ToFloat(light.ShadowIntensity), 0f, 1f),
+            MathF.Max(RenderMath.ToFloat(light.ShadowBias), RenderMath.Epsilon),
+            MathF.Max(RenderMath.ToFloat(light.ShadowMaxDistance), 1f));
     }
 
     private Entity GetCamera()

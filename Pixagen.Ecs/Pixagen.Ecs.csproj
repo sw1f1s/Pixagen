@@ -1,0 +1,12 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Pixagen.Ecs</AssemblyName>
+    <RootNamespace>Pixagen.Ecs</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);CS0693;CS8601;CS8603;CS8618;CS8625</NoWarn>
+  </PropertyGroup>
+
+</Project>

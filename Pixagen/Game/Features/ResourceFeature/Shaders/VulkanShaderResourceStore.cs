@@ -1,4 +1,5 @@
 using Pixagen.Game.Features.ResourceFeature.Runtime;
+using Pixagen.Rendering.Vulkan;
 using Veldrid;
 using Veldrid.SPIRV;
 

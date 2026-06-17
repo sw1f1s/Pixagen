@@ -5,6 +5,7 @@ namespace Pixagen.Game.Features.SharedFeature.Systems;
 public sealed class EntityDisableTriggerSystem : IPreUpdateSystem
 {
     private readonly WorldInject _world = default;
+    private readonly FilterInject<Include<DisableNextTick>> _pending = default;
     private readonly ComponentInject<Children> _children = default;
     private readonly ComponentInject<IsEnable> _enableStates = default;
     private readonly ComponentInject<EnableNextTick> _enableNextTicks = default;
@@ -15,14 +16,10 @@ public sealed class EntityDisableTriggerSystem : IPreUpdateSystem
 
     public void PreUpdate()
     {
-        ComponentStorage<DisableNextTick> storage = _world.Value.GetComponentStorage<DisableNextTick>();
-        while (storage.Count > 0)
+        foreach (Entity entity in _pending.Value)
         {
-            int entityId = storage.Entities.DenseValues[storage.Count - 1];
-            Entity entity = _world.Value.Entities.Get(entityId).GetEntity();
-            if (!_world.IsAlive(entity))
+            if (!_world.IsAlive(entity) || !_disableNextTicks.Has(entity))
             {
-                storage.RemoveComponent(entity);
                 continue;
             }
 

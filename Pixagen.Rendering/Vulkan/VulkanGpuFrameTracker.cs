@@ -7,12 +7,12 @@ internal sealed class VulkanGpuFrameTracker : IDisposable
     private const int MaxGpuFramesInFlight = 2;
     private static readonly TimeSpan GpuFenceTimeout = TimeSpan.FromSeconds(5);
 
-    private readonly PerformanceStats _performanceStats;
+    private readonly IRenderPerformanceSink _performanceStats;
     private readonly List<PendingGpuFrame> _pendingGpuFrames = new();
     private long _currentGpuFrameStartTicks;
     private bool _hasCurrentGpuFrame;
 
-    public VulkanGpuFrameTracker(PerformanceStats performanceStats)
+    public VulkanGpuFrameTracker(IRenderPerformanceSink performanceStats)
     {
         _performanceStats = performanceStats;
     }
@@ -26,7 +26,7 @@ internal sealed class VulkanGpuFrameTracker : IDisposable
             return;
         }
 
-        _currentGpuFrameStartTicks = PerformanceStats.Timestamp;
+        _currentGpuFrameStartTicks = _performanceStats.CurrentTimestamp;
         _hasCurrentGpuFrame = true;
     }
 
@@ -34,7 +34,7 @@ internal sealed class VulkanGpuFrameTracker : IDisposable
     {
         if (!_hasCurrentGpuFrame)
         {
-            _currentGpuFrameStartTicks = PerformanceStats.Timestamp;
+            _currentGpuFrameStartTicks = _performanceStats.CurrentTimestamp;
         }
 
         _pendingGpuFrames.Add(new PendingGpuFrame(fence, _currentGpuFrameStartTicks));

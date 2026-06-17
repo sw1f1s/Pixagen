@@ -17,7 +17,7 @@ public sealed class EngineBenchmarkContext : IDisposable
     {
         Config = config;
         Options = CreateOptions(config);
-        BackendOptions = RenderBackendOptions.FromEngineOptions(Options);
+        BackendOptions = CreateBackendOptions(Options);
         Time = new Time();
         Input = new InputState();
         World = WorldBuilder.Build();
@@ -139,6 +139,18 @@ public sealed class EngineBenchmarkContext : IDisposable
         Resources.Dispose();
         World.Dispose();
         RenderBackend.Dispose();
+    }
+
+    private static RenderBackendOptions CreateBackendOptions(EngineOptions options)
+    {
+        return new RenderBackendOptions(
+            options.WindowWidth,
+            options.WindowHeight,
+            options.CellPixelSize,
+            options.Fullscreen,
+            options.CaptureMouse,
+            options.ShowCursor,
+            options.RunSingleFrame);
     }
 
     private static EngineOptions CreateOptions(BenchmarkConfig config)

@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Pixagen.Rendering</AssemblyName>
+    <RootNamespace>Pixagen.Rendering</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);CS0693;CS8601;CS8603;CS8618;CS8625</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) Or $([System.Text.RegularExpressions.Regex]::IsMatch('$(RuntimeIdentifier);$(NETCoreSdkRuntimeIdentifier)', '(^|;)osx-'))">
+    <DefineConstants>$(DefineConstants);MACOS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="FixedMathSharp.Lean" Version="5.0.0" />
+    <PackageReference Include="AiDotNet.Native.MoltenVK" Version="0.94.2" />
+    <PackageReference Include="Ultz.Native.SDL" Version="2.32.10" />
+    <PackageReference Include="Veldrid" Version="4.9.0" />
+    <PackageReference Include="Veldrid.SPIRV" Version="1.0.15" />
+    <PackageReference Include="Veldrid.StartupUtilities" Version="4.9.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Pixagen.Ecs/Pixagen.Ecs.csproj" />
+  </ItemGroup>
+
+</Project>

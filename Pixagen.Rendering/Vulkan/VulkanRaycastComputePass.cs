@@ -1,9 +1,7 @@
 using System.Numerics;
 using System.Runtime.InteropServices;
-using Pixagen.Game.Features.RenderFeature;
-using Pixagen.Game.Features.RenderFeature.Raycasting;
-using Pixagen.Game.Features.RenderFeature.Textures;
-using Pixagen.Game.Features.ResourceFeature.Shaders;
+using Pixagen.Rendering.Raycasting;
+using Pixagen.Rendering.Textures;
 using Veldrid;
 
 namespace Pixagen.Rendering.Vulkan;

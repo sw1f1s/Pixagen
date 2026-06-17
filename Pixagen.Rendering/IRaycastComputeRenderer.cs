@@ -1,5 +1,4 @@
-using Pixagen.Game.Features.RenderFeature;
-using Pixagen.Game.Features.RenderFeature.Raycasting;
+using Pixagen.Rendering.Raycasting;
 
 namespace Pixagen.Rendering;
 

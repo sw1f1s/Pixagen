@@ -1,10 +1,8 @@
-using Pixagen.Game.Features.RenderFeature.Components;
-using Pixagen.Game.Features.RenderFeature.Textures;
-using Pixagen.Rendering;
+using Pixagen.Rendering.Textures;
 using Float3 = System.Numerics.Vector3;
 using Float2 = System.Numerics.Vector2;
 
-namespace Pixagen.Game.Features.RenderFeature.Raycasting;
+namespace Pixagen.Rendering.Raycasting;
 
 public readonly struct TrianglePrimitive
 {
@@ -94,12 +92,11 @@ public readonly struct DirectionalLight
 {
     public static DirectionalLight Default => new(
         Float3.UnitY,
-        new LightDirection(
-            Fix.One,
-            Fix.One / new Fix(5),
-            new Fix(3) / new Fix(5),
-            Fix.One / new Fix(20),
-            new Fix(100)));
+        1f,
+        0.2f,
+        0.6f,
+        0.05f,
+        100f);
 
     public readonly Float3 Direction;
     public readonly float Intensity;
@@ -109,14 +106,20 @@ public readonly struct DirectionalLight
     public readonly float ShadowMaxDistance;
     public readonly bool CastsShadows;
 
-    public DirectionalLight(Float3 direction, LightDirection settings)
+    public DirectionalLight(
+        Float3 direction,
+        float intensity,
+        float ambientIntensity,
+        float shadowIntensity,
+        float shadowBias,
+        float shadowMaxDistance)
     {
         Direction = RenderMath.NormalizeOr(direction, Float3.UnitY);
-        Intensity = MathF.Max(RenderMath.ToFloat(settings.Intensity), 0f);
-        AmbientIntensity = Math.Clamp(RenderMath.ToFloat(settings.AmbientIntensity), 0f, 1f);
-        ShadowIntensity = Math.Clamp(RenderMath.ToFloat(settings.ShadowIntensity), 0f, 1f);
-        ShadowBias = MathF.Max(RenderMath.ToFloat(settings.ShadowBias), RenderMath.Epsilon);
-        ShadowMaxDistance = MathF.Max(RenderMath.ToFloat(settings.ShadowMaxDistance), 1f);
+        Intensity = MathF.Max(intensity, 0f);
+        AmbientIntensity = Math.Clamp(ambientIntensity, 0f, 1f);
+        ShadowIntensity = Math.Clamp(shadowIntensity, 0f, 1f);
+        ShadowBias = MathF.Max(shadowBias, RenderMath.Epsilon);
+        ShadowMaxDistance = MathF.Max(shadowMaxDistance, 1f);
         CastsShadows = ShadowIntensity > 0f;
     }
 }

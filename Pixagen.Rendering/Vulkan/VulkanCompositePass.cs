@@ -1,4 +1,3 @@
-using Pixagen.Game.Features.ResourceFeature.Shaders;
 using Veldrid;
 
 namespace Pixagen.Rendering.Vulkan;

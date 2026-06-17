@@ -1,7 +1,7 @@
 using Float3 = System.Numerics.Vector3;
 using Float2 = System.Numerics.Vector2;
 
-namespace Pixagen.Game.Features.RenderFeature.Meshes;
+namespace Pixagen.Rendering.Meshes;
 
 public sealed class MeshAsset
 {

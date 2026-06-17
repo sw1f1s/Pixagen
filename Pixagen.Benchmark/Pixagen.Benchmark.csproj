@@ -11,6 +11,8 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="../Pixagen.Ecs/Pixagen.Ecs.csproj" />
+    <ProjectReference Include="../Pixagen.Rendering/Pixagen.Rendering.csproj" />
     <ProjectReference Include="../Pixagen/Pixagen.csproj" />
   </ItemGroup>
 

@@ -2,7 +2,7 @@ using System.Diagnostics;
 
 namespace Pixagen.Core.Performance;
 
-public sealed class PerformanceStats
+public sealed class PerformanceStats : IRenderPerformanceSink
 {
     private readonly object _sync = new();
     private readonly long _memoryRefreshIntervalTicks;
@@ -47,6 +47,7 @@ public sealed class PerformanceStats
     }
 
     public static long Timestamp => Stopwatch.GetTimestamp();
+    public long CurrentTimestamp => Timestamp;
 
     public static double TicksToMilliseconds(long ticks)
     {

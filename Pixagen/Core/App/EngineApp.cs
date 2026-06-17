@@ -1,8 +1,6 @@
 using System.Diagnostics;
 using Pixagen.Ecs.DI;
 using Pixagen.Game;
-using Pixagen.Rendering;
-using Pixagen.Rendering.Vulkan;
 using PixagenDebug = Pixagen.Core.Debugging.Debug;
 
 namespace Pixagen.Core.App;
@@ -57,7 +55,7 @@ public sealed class EngineApp : IDisposable
         {
             var time = new Time();
             var input = new InputState();
-            var renderBackendOptions = RenderBackendOptions.FromEngineOptions(options);
+            var renderBackendOptions = CreateRenderBackendOptions(options);
             var frameBuffer = new FrameBuffer(
                 Math.Max(1, renderBackendOptions.WindowWidth / renderBackendOptions.CellPixelSize),
                 Math.Max(1, renderBackendOptions.WindowHeight / renderBackendOptions.CellPixelSize));
@@ -107,7 +105,7 @@ public sealed class EngineApp : IDisposable
 
     public void Run()
     {
-        _renderBackend.Initialize(RenderBackendOptions.FromEngineOptions(_options));
+        _renderBackend.Initialize(CreateRenderBackendOptions(_options));
 
         do
         {
@@ -154,6 +152,18 @@ public sealed class EngineApp : IDisposable
 
         (int width, int height) = _renderBackend.GetFrameBufferSize();
         _frameBuffer.Resize(width, height);
+    }
+
+    private static RenderBackendOptions CreateRenderBackendOptions(EngineOptions options)
+    {
+        return new RenderBackendOptions(
+            options.WindowWidth,
+            options.WindowHeight,
+            options.CellPixelSize,
+            options.Fullscreen,
+            options.CaptureMouse,
+            options.ShowCursor,
+            options.RunSingleFrame);
     }
 
     private void SleepToTargetFrameTime(long frameStart)

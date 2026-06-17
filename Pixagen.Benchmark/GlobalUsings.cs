@@ -6,3 +6,8 @@ global using Pixagen.Core.Input;
 global using Pixagen.Core.Performance;
 global using Pixagen.Core.Runtime;
 global using Pixagen.Core.Timing;
+global using Pixagen.Rendering;
+global using Pixagen.Rendering.Meshes;
+global using Pixagen.Rendering.Raycasting;
+global using Pixagen.Rendering.Textures;
+global using Pixagen.Rendering.Vulkan;

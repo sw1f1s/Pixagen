@@ -1,6 +1,4 @@
 using Pixagen.Game.Features.RenderFeature.Components;
-using Pixagen.Game.Features.RenderFeature.Meshes;
-using Pixagen.Game.Features.RenderFeature.Textures;
 using Pixagen.Rendering;
 using Float3 = System.Numerics.Vector3;
 using Float2 = System.Numerics.Vector2;

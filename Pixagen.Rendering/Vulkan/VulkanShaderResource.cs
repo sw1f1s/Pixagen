@@ -1,10 +1,10 @@
 using Veldrid;
 
-namespace Pixagen.Game.Features.ResourceFeature.Shaders;
+namespace Pixagen.Rendering.Vulkan;
 
 public sealed class VulkanShaderResource
 {
-    internal VulkanShaderResource(Shader[] compositeShaders, Shader raycastShader)
+    public VulkanShaderResource(Shader[] compositeShaders, Shader raycastShader)
     {
         CompositeShaders = compositeShaders;
         RaycastShader = raycastShader;

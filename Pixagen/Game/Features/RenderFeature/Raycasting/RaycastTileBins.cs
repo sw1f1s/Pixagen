@@ -1,28 +1,10 @@
 using Pixagen.Game.Features.RenderFeature.Components;
 using Pixagen.Rendering;
+using Pixagen.Rendering.Raycasting;
 using Float2 = System.Numerics.Vector2;
 using Float3 = System.Numerics.Vector3;
 
 namespace Pixagen.Game.Features.RenderFeature.Raycasting;
-
-public readonly record struct RaycastTileRange(int Offset, int Count);
-
-public sealed class RaycastTileBins
-{
-    internal RaycastTileBins()
-    {
-    }
-
-    public int TileSize { get; internal set; }
-    public int TileColumns { get; internal set; }
-    public int TileRows { get; internal set; }
-    public int TileCount { get; internal set; }
-    public int TriangleCount { get; internal set; }
-    public int IndexCount { get; internal set; }
-    public double EstimatedPrimaryTriangleTests { get; internal set; }
-    public RaycastTileRange[] Ranges { get; internal set; } = [new RaycastTileRange(0, 0)];
-    public int[] TriangleIndices { get; internal set; } = [0];
-}
 
 public sealed class RaycastTileBinBuilder
 {
