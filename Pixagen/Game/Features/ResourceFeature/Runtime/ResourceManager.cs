@@ -523,6 +523,13 @@ public sealed class ResourceManager : IDisposeInject, IVulkanShaderProvider, IDi
                     !string.IsNullOrWhiteSpace(texture.Asset))
                 {
                     textureAssets.Add(ResourcePathResolver.NormalizeAssetId(texture.Asset, ".ppm"));
+                    continue;
+                }
+
+                if (component is SkyboxTexture skyboxTexture &&
+                    !string.IsNullOrWhiteSpace(skyboxTexture.Asset))
+                {
+                    textureAssets.Add(ResourcePathResolver.NormalizeAssetId(skyboxTexture.Asset, ".ppm"));
                 }
             }
 

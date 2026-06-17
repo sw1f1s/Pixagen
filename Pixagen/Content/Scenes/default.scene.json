@@ -187,6 +187,24 @@
       "components": [
         {
           "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
+          "id": "skybox",
+          "name": "Skybox"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.SkyboxColor",
+          "color": "#6D9AB8"
+        },
+        {
+          "type": "Pixagen.Game.Features.RenderFeature.Components.SkyboxTexture",
+          "asset": "sky_clouds.ppm"
+        }
+      ],
+      "children": []
+    },
+    {
+      "components": [
+        {
+          "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
           "id": "ground",
           "name": "Ground"
         },

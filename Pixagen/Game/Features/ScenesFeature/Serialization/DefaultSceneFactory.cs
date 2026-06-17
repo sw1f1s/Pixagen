@@ -17,6 +17,7 @@ public static class DefaultSceneFactory
         {
             CreateFPSCharacter(),
             CreateLight(),
+            CreateSkybox(),
             CreateGround(),
         };
 
@@ -89,6 +90,19 @@ public static class DefaultSceneFactory
                     F(4) / F(5),
                     Fix.One / F(20),
                     F(100))
+            ]
+        };
+    }
+
+    private static SceneObjectDefinition CreateSkybox()
+    {
+        return new SceneObjectDefinition
+        {
+            Components =
+            [
+                new Info("skybox", "Skybox"),
+                new SkyboxColor(PixelColor.FromRgb(109, 154, 184)),
+                new SkyboxTexture("sky_clouds.ppm")
             ]
         };
     }

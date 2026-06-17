@@ -59,7 +59,7 @@ public sealed class RenderAssetResolver : IDisposeInject
         Clear();
     }
 
-    private TextureAsset ResolveTexture(string asset, ResourceManager resources)
+    public TextureAsset ResolveTexture(string asset, ResourceManager resources)
     {
         if (_textures.TryGetValue(asset, out TextureAsset? texture))
         {

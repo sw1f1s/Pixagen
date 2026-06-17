@@ -18,7 +18,8 @@ public readonly record struct RaycastComputeRequest(
     RaycastTileBins TileBins,
     RaycastShadowBins ShadowBins,
     RenderPrimitiveBatch StaticPrimitives,
-    RenderPrimitiveBatch DynamicPrimitives);
+    RenderPrimitiveBatch DynamicPrimitives,
+    Skybox Skybox);
 
 public sealed class NullRaycastComputeRenderer : IRaycastComputeRenderer
 {

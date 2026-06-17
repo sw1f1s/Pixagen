@@ -34,6 +34,18 @@ public sealed class SceneTests
     }
 
     [Fact]
+    public void DefaultSceneFactory_CreatesTextureSkybox()
+    {
+        SceneDefinition scene = DefaultSceneFactory.Create();
+
+        SceneObjectDefinition skybox = scene.Objects.Single(obj => GetInfo(obj).Id == "skybox");
+        Assert.Contains(skybox.Components, component => component is SkyboxColor);
+        SkyboxTexture texture = skybox.Components.OfType<SkyboxTexture>().Single();
+
+        Assert.Equal("sky_clouds.ppm", texture.Asset);
+    }
+
+    [Fact]
     public void SceneManager_AddScene_CreatesEntitiesWithSceneObjectAndHierarchy()
     {
         using var context = new EcsTestContext();

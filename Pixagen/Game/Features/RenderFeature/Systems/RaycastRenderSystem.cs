@@ -21,12 +21,16 @@ public sealed class RaycastRenderSystem : IUpdateSystem
     private readonly FilterInject<Include<Transform, LightDirection>> _lights = default;
     private readonly FilterInject<Include<Transform, Mesh>, Exclude<IsStaticRender>> _meshes = default;
     private readonly FilterInject<Include<Transform, Mesh, ShadowCaster>, Exclude<IsStaticRender>> _shadowMeshes = default;
+    private readonly FilterInject<Include<SkyboxColor>> _skyboxColors = default;
+    private readonly FilterInject<Include<SkyboxTexture>> _skyboxTextures = default;
     private readonly CustomInject<EntityStateHelper> _entityState = default;
     private readonly ComponentInject<Transform> _transforms = default;
     private readonly ComponentInject<Mesh> _meshComponents = default;
     private readonly ComponentInject<Material> _materials = default;
     private readonly ComponentInject<Camera> _cameraComponents = default;
     private readonly ComponentInject<LightDirection> _lightDirections = default;
+    private readonly ComponentInject<SkyboxColor> _skyboxColorComponents = default;
+    private readonly ComponentInject<SkyboxTexture> _skyboxTextureComponents = default;
     private readonly RenderFrustumCuller _frustumCuller = new();
     private readonly RenderPrimitiveBatch _visibleStaticPrimitives = new();
     private readonly RenderPrimitiveBatch _visibleDynamicPrimitives = new();
@@ -122,6 +126,7 @@ public sealed class RaycastRenderSystem : IUpdateSystem
                 shadowSoftness,
                 rayBuilder,
                 light,
+                ResolveSkybox(_resources.Value, _assets.Value),
                 tileBins,
                 shadowBins,
                 staticPrimitives,
@@ -156,6 +161,7 @@ public sealed class RaycastRenderSystem : IUpdateSystem
         float shadowSoftness,
         RayBuilder rayBuilder,
         DirectionalLight light,
+        Skybox skybox,
         RaycastTileBins tileBins,
         RaycastShadowBins shadowBins,
         RenderPrimitiveBatch staticPrimitives,
@@ -172,7 +178,8 @@ public sealed class RaycastRenderSystem : IUpdateSystem
             tileBins,
             shadowBins,
             staticPrimitives,
-            dynamicPrimitives);
+            dynamicPrimitives,
+            skybox);
 
         if (!_computeRenderer.Value.TryRenderRaycast(request))
         {
@@ -268,6 +275,42 @@ public sealed class RaycastRenderSystem : IUpdateSystem
         }
 
         return Entity.Empty;
+    }
+
+    private Skybox ResolveSkybox(ResourceManager resources, RenderAssetResolver assets)
+    {
+        PixelColor color = PixelColor.FromRgb(0, 0, 0);
+        bool hasColor = false;
+
+        foreach (Entity entity in _skyboxColors.Value)
+        {
+            if (!_entityState.Value.IsEnabled(entity))
+            {
+                continue;
+            }
+
+            color = _skyboxColorComponents.Get(entity).Color;
+            hasColor = true;
+            break;
+        }
+
+        foreach (Entity entity in _skyboxTextures.Value)
+        {
+            if (!_entityState.Value.IsEnabled(entity))
+            {
+                continue;
+            }
+
+            string asset = _skyboxTextureComponents.Get(entity).Asset;
+            if (!string.IsNullOrWhiteSpace(asset))
+            {
+                return new Skybox(color, assets.ResolveTexture(asset, resources));
+            }
+        }
+
+        return hasColor
+            ? new Skybox(color)
+            : Skybox.Empty;
     }
 
     private static float ResolveDrawDistance(RenderSettings settings, Camera camera)

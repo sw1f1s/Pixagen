@@ -47,6 +47,19 @@ public sealed class ResourceManagerTests
     }
 
     [Fact]
+    public void ResourceManager_LoadsSkyboxTextureAsset()
+    {
+        using var resources = new ResourceManager();
+
+        var texture = resources.LoadTexture("sky_clouds");
+
+        Assert.Equal("sky_clouds.ppm", texture.Id);
+        Assert.Equal(512, texture.Width);
+        Assert.Equal(256, texture.Height);
+        Assert.True(texture.MipCount > 1);
+    }
+
+    [Fact]
     public void ResourceManager_LoadsSceneFromCacheUntilUnloaded()
     {
         string path = Path.Combine(
@@ -111,6 +124,7 @@ public sealed class ResourceManagerTests
         Assert.Equal("default", scope.SceneId);
         Assert.True(resources.IsMeshLoaded("cube"));
         Assert.True(resources.IsTextureLoaded("checker"));
+        Assert.True(resources.IsTextureLoaded("sky_clouds"));
     }
 
     [Fact]
@@ -152,6 +166,35 @@ public sealed class ResourceManagerTests
         Assert.False(resources.IsMeshLoaded("cube"));
         Assert.False(resources.IsTextureLoaded("checker"));
         Assert.False(resources.UnloadSceneResources(scope));
+    }
+
+    [Fact]
+    public async Task ResourceManager_LoadSceneResourcesAsync_LoadsAndUnloadsSkyboxTexture()
+    {
+        using var resources = new ResourceManager();
+        var scene = new SceneDefinition
+        {
+            Id = "skybox-scene",
+            Name = "Skybox Scene",
+            Objects =
+            [
+                new SceneObjectDefinition
+                {
+                    Components =
+                    [
+                        new SkyboxTexture("sky_clouds")
+                    ]
+                }
+            ]
+        };
+
+        SceneResourceScope scope = await resources.LoadSceneResourcesAsync(scene);
+
+        Assert.Contains("sky_clouds.ppm", scope.TextureAssets);
+        Assert.True(resources.IsTextureLoaded("sky_clouds"));
+
+        Assert.True(resources.UnloadSceneResources(scope));
+        Assert.False(resources.IsTextureLoaded("sky_clouds"));
     }
 
     [Fact]

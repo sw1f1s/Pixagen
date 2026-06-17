@@ -173,9 +173,6 @@ internal sealed class VulkanRaycastComputePass : IDisposable
         VulkanGpuFrameTracker frameTracker,
         in RaycastComputeRequest request)
     {
-        GpuRaycastParams parameters = GpuRaycastParams.From(request);
-        graphicsDevice.UpdateBuffer(_paramsBuffer!, 0, ref parameters);
-
         _textureIndices.Clear();
         _textures.Clear();
         try
@@ -194,6 +191,7 @@ internal sealed class VulkanRaycastComputePass : IDisposable
                     request.DynamicPrimitives.ShadowTriangles,
                     _textureIndices,
                     _textures);
+            int skyboxTextureIndex = GetTextureIndex(request.Skybox.Texture, _textureIndices, _textures);
             int textureInfoCount = FillTextures(ref _gpuTextureInfos, ref _gpuTexturePixels, _textures);
             int tileRangeCount = FillTileRanges(ref _gpuTileRanges, request.TileBins);
             int tileTriangleIndexCount = FillTileTriangleIndices(ref _gpuTileTriangleIndices, request.TileBins);
@@ -203,6 +201,9 @@ internal sealed class VulkanRaycastComputePass : IDisposable
             int shadowCellTriangleIndexCount = request.ShadowQuality == ShadowQuality.Off
                 ? ClearTriangleIndices(ref _gpuShadowCellTriangleIndices)
                 : FillShadowCellTriangleIndices(ref _gpuShadowCellTriangleIndices, request.ShadowBins);
+
+            GpuRaycastParams parameters = GpuRaycastParams.From(request, skyboxTextureIndex);
+            graphicsDevice.UpdateBuffer(_paramsBuffer!, 0, ref parameters);
 
             EnsureStructuredBuffer(graphicsDevice, frameTracker, ref _triangleBuffer, ref _triangleCapacity, Math.Max(1, triangleCount), Marshal.SizeOf<GpuTriangle>());
             EnsureStructuredBuffer(graphicsDevice, frameTracker, ref _shadowTriangleBuffer, ref _shadowTriangleCapacity, Math.Max(1, shadowTriangleCount), Marshal.SizeOf<GpuTriangle>());
@@ -497,8 +498,9 @@ internal sealed class VulkanRaycastComputePass : IDisposable
         public Vector4 LightSettings;
         public Vector4 ShadowSettings;
         public Vector4 SkyColor;
+        public Vector4 SkyboxInfo;
 
-        public static GpuRaycastParams From(in RaycastComputeRequest request)
+        public static GpuRaycastParams From(in RaycastComputeRequest request, int skyboxTextureIndex)
         {
             RayBuilder rayBuilder = request.RayBuilder;
             DirectionalLight light = request.Light;
@@ -542,7 +544,12 @@ internal sealed class VulkanRaycastComputePass : IDisposable
                     0f,
                     0f,
                     0f),
-                SkyColor = new Vector4(109f / 255f, 154f / 255f, 184f / 255f, 1f)
+                SkyColor = ToVector4(request.Skybox.Color, 1f),
+                SkyboxInfo = new Vector4(
+                    skyboxTextureIndex,
+                    skyboxTextureIndex >= 0 ? 1f : 0f,
+                    0f,
+                    0f)
             };
         }
 

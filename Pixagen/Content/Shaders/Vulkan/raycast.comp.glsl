@@ -1,6 +1,8 @@
 #version 450
 
 const float Epsilon = 0.0001;
+const float Pi = 3.14159265358979323846;
+const float TwoPi = 6.28318530717958647692;
 
 struct Triangle
 {
@@ -59,6 +61,7 @@ layout(set = 0, binding = 1) uniform RaycastParams
     vec4 LightSettings;
     vec4 ShadowSettings;
     vec4 SkyColor;
+    vec4 SkyboxInfo;
 } Params;
 
 layout(std430, set = 0, binding = 2) readonly buffer TriangleBuffer
@@ -221,6 +224,22 @@ vec4 sampleTexture(TextureInfo info, vec2 uv, float lod)
     vec4 a = sampleTextureLevel(info, uv, level0);
     vec4 b = sampleTextureLevel(info, uv, level1);
     return mix(a, b, blend);
+}
+
+vec3 sampleSkybox(vec3 direction)
+{
+    if (Params.SkyboxInfo.y > 0.5 && Params.SkyboxInfo.x >= 0.0)
+    {
+        int textureIndex = int(Params.SkyboxInfo.x);
+        TextureInfo info = TextureInfos[textureIndex];
+        vec3 normalizedDirection = normalizeOr(direction, vec3(0.0, 0.0, 1.0));
+        float u = fract(atan(normalizedDirection.x, normalizedDirection.z) / TwoPi + 0.5);
+        float v = clamp(asin(clamp(normalizedDirection.y, -1.0, 1.0)) / Pi + 0.5, 0.0, 1.0);
+        vec4 texel = sampleTexture(info, vec2(u, v), 0.0);
+        return mix(Params.SkyColor.rgb, texel.rgb, clamp(texel.a, 0.0, 1.0));
+    }
+
+    return Params.SkyColor.rgb;
 }
 
 float estimateTextureLod(Triangle triangle, vec3 direction, float distance, TextureInfo info)
@@ -617,7 +636,7 @@ vec3 traceColor(vec3 origin, vec3 direction, ivec2 pixel)
         castScene(currentOrigin, direction, remainingDistance, pixel, hit);
         if (!hit.HitSomething)
         {
-            accumulated += Params.SkyColor.rgb * transmittance;
+            accumulated += sampleSkybox(direction) * transmittance;
             transmittance = 0.0;
             break;
         }
@@ -631,7 +650,7 @@ vec3 traceColor(vec3 origin, vec3 direction, ivec2 pixel)
 
     if (transmittance > 0.0)
     {
-        accumulated += Params.SkyColor.rgb * transmittance;
+        accumulated += sampleSkybox(direction) * transmittance;
     }
 
     return accumulated;
