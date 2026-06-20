@@ -1,14 +1,14 @@
 {
   "version": 1,
   "id": "default",
-  "name": "Vertical FPS Prototype",
+  "name": "Vertical Character Prototype",
   "objects": [
     {
       "components": [
         {
           "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
-          "id": "fps-character",
-          "name": "FPS Character"
+          "id": "character",
+          "name": "Character"
         },
         {
           "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
@@ -47,13 +47,15 @@
           "rollDelta": 0
         },
         {
-          "type": "Pixagen.Game.Features.FPSCharacterFeature.Components.FPSCharacter",
+          "type": "Pixagen.Game.Features.CharacterFeature.Components.FpsCharacter",
           "moveSpeed": 5,
           "cameraRotationSpeed": 2,
           "jumpSpeed": 5,
           "groundProbeDistance": 1.0500000000465661,
           "groundNormalY": 0.6000000000931323,
           "height": 1.75,
+          "stepHeight": 0.35,
+          "cameraHeightFactor": 0.95,
           "moveDirection": {
             "x": 0,
             "y": 0,
@@ -66,8 +68,8 @@
           "type": "Pixagen.Game.Features.PhysicsFeature.Components.RigidBody",
           "kind": "dynamic",
           "mass": 1,
-          "friction": 1,
-          "maximumRecoveryVelocity": 2,
+          "friction": 0,
+          "maximumRecoveryVelocity": 0.25,
           "lockRotation": true
         },
         {
@@ -87,14 +89,14 @@
           "components": [
             {
               "type": "Pixagen.Game.Features.SharedFeature.Components.Info",
-              "id": "fps-character-camera",
-              "name": "FPS Character Camera"
+              "id": "character-camera",
+              "name": "Character Camera"
             },
             {
               "type": "Pixagen.Game.Features.SharedFeature.Components.Transform",
               "position": {
                 "x": 0,
-                "y": 0.875,
+                "y": 0.7875,
                 "z": -16
               },
               "rotation": {
@@ -113,7 +115,7 @@
               "type": "Pixagen.Game.Features.SharedFeature.Components.LocalTransform",
               "position": {
                 "x": 0,
-                "y": 0.875,
+                "y": 0.7875,
                 "z": 0
               },
               "rotation": {
@@ -136,7 +138,7 @@
               "maxDistance": 96
             },
             {
-              "type": "Pixagen.Game.Features.FPSCharacterFeature.Components.FPSCharacterCamera",
+              "type": "Pixagen.Game.Features.CharacterFeature.Components.FpsCameraCharacter",
               "pitch": 0,
               "minPitch": -1.4835298641119152,
               "maxPitch": 1.4835298641119152

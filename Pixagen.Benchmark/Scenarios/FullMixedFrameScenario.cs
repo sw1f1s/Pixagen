@@ -1,7 +1,7 @@
 using Pixagen.Ecs.Runtime;
 using Pixagen.Ecs.DI;
-using Pixagen.Game.Features.FPSCharacterFeature;
-using Pixagen.Game.Features.FPSCharacterFeature.Components;
+using Pixagen.Game.Features.CharacterFeature;
+using Pixagen.Game.Features.CharacterFeature.Components;
 using Pixagen.Game.Features.FreeCameraFeature;
 using Pixagen.Game.Features.PhysicsFeature;
 using Pixagen.Game.Features.PhysicsFeature.Components;
@@ -46,8 +46,8 @@ public sealed class FullMixedFrameScenario : IBenchmarkScenario
         var rigidBodies = new ComponentInject<RigidBody>(engine.World);
         var colliders = new ComponentInject<Collider>(engine.World);
         var freeCameras = new ComponentInject<FreeCameraComponent>(engine.World);
-        var fpsCharacters = new ComponentInject<FPSCharacter>(engine.World);
-        var fpsCameras = new ComponentInject<FPSCharacterCamera>(engine.World);
+        var characterComponents = new ComponentInject<FpsCharacter>(engine.World);
+        var cameraComponents = new ComponentInject<FpsCameraCharacter>(engine.World);
         var cameras = new ComponentInject<Camera>(engine.World);
         var uiTransforms = new ComponentInject<TransformUI>(engine.World);
         var texts = new ComponentInject<TextUI>(engine.World);
@@ -59,7 +59,7 @@ public sealed class FullMixedFrameScenario : IBenchmarkScenario
         int physicsBodies = 0;
         int uiEntities = 0;
         int controllerEntities = 0;
-        int fpsCharacterEntities = 0;
+        int characterEntities = 0;
 
         for (int i = 0; i < context.EntityCount; i++)
         {
@@ -116,9 +116,9 @@ public sealed class FullMixedFrameScenario : IBenchmarkScenario
             if (i % 128 == 0)
             {
                 EnsurePhysicsBody(entity, i, rigidBodies, colliders, ref physicsBodies);
-                fpsCharacters.Add(entity, new FPSCharacter(new Fix(5), Fix.One));
-                CreateFpsCameraChild(engine, entity, world, transforms, localTransforms, cameras, fpsCameras);
-                fpsCharacterEntities++;
+                characterComponents.Add(entity, new FpsCharacter(new Fix(5), Fix.One));
+                CreateFpsCameraCharacterChild(engine, entity, world, transforms, localTransforms, cameras, cameraComponents);
+                characterEntities++;
                 controllerEntities++;
             }
 
@@ -150,8 +150,8 @@ public sealed class FullMixedFrameScenario : IBenchmarkScenario
             new VelocityWorkloadSystem(),
             new EntityToggleWorkloadSystem(toggleEntities.ToArray()),
             new FreeCameraFeatureSystemsGroup(),
-            new FPSCharacterFeatureSystemsGroup(),
             new PhysicsFeatureSystemsGroup(),
+            new CharacterFeatureSystemsGroup(),
             new SharedFeatureSystemsGroup(),
             new RenderFeatureSystemsGroup(),
             new UIFeatureSystemsGroup());
@@ -168,7 +168,7 @@ public sealed class FullMixedFrameScenario : IBenchmarkScenario
                 counters["physicsBodies"] = physicsBodies;
                 counters["uiEntities"] = uiEntities;
                 counters["controllers"] = controllerEntities;
-                counters["fpsCharacters"] = fpsCharacterEntities;
+                counters["characterComponents"] = characterEntities;
                 return counters;
             });
     }
@@ -214,14 +214,14 @@ public sealed class FullMixedFrameScenario : IBenchmarkScenario
         }
     }
 
-    private static void CreateFpsCameraChild(
+    private static void CreateFpsCameraCharacterChild(
         EngineBenchmarkContext engine,
         Entity parent,
         WorldInject world,
         ComponentInject<Transform> transforms,
         ComponentInject<LocalTransform> localTransforms,
         ComponentInject<Camera> cameras,
-        ComponentInject<FPSCharacterCamera> fpsCameras)
+        ComponentInject<FpsCameraCharacter> cameraComponents)
     {
         Entity camera = world.Create<Transform>();
         var localTransform = new LocalTransform(new Vector3(Fix.Zero, Fix.One, Fix.Zero));
@@ -229,7 +229,7 @@ public sealed class FullMixedFrameScenario : IBenchmarkScenario
         localTransforms.Add(camera, localTransform);
         engine.State.AddChild(parent, camera);
         cameras.Add(camera, new Camera(Fix.One, Fix.One, new Fix(9) / new Fix(16), new Fix(64)));
-        fpsCameras.Add(camera, new FPSCharacterCamera(Fix.Zero));
+        cameraComponents.Add(camera, new FpsCameraCharacter(Fix.Zero));
     }
 
     private static void AddOrReplaceUi(

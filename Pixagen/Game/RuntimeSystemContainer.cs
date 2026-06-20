@@ -1,5 +1,5 @@
 using Pixagen.Game.Features.DebugFeature;
-using Pixagen.Game.Features.FPSCharacterFeature;
+using Pixagen.Game.Features.CharacterFeature;
 using Pixagen.Game.Features.FreeCameraFeature;
 using Pixagen.Game.Features.PhysicsFeature;
 using Pixagen.Game.Features.RenderFeature;
@@ -20,8 +20,8 @@ public sealed class RuntimeSystemContainer
             .Add(new ResourceFeatureSystemsGroup())
             .Add(new ScenesFeatureSystemsGroup())
             .Add(new FreeCameraFeatureSystemsGroup())
-            .Add(new FPSCharacterFeatureSystemsGroup())
             .Add(new PhysicsFeatureSystemsGroup())
+            .Add(new CharacterFeatureSystemsGroup())
             .Add(new SharedFeatureSystemsGroup())
             .Add(new RenderFeatureSystemsGroup())
             .Add(new UIFeatureSystemsGroup());

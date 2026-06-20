@@ -8,11 +8,9 @@ public sealed class LerpMovementSystem : IUpdateSystem
 {
     private readonly CustomInject<Time> _time = default;
     private readonly FilterInject<Include<Transform, Velocity, LerpMovement>, Exclude<IsStaticRender, RigidBody, DisabledInHierarchy>> _movingEntities = default;
-    private readonly FilterInject<Include<Transform, Velocity, LerpMovement, RigidBody>, Exclude<IsStaticRender, DisabledInHierarchy>> _movingRigidBodies = default;
     private readonly ComponentInject<Transform> _transforms = default;
     private readonly ComponentInject<Velocity> _velocities = default;
     private readonly ComponentInject<LerpMovement> _movements = default;
-    private readonly ComponentInject<RigidBody> _rigidBodies = default;
 
     public void Update()
     {
@@ -21,19 +19,10 @@ public sealed class LerpMovementSystem : IUpdateSystem
             _transforms,
             _velocities,
             _movements,
-            _rigidBodies,
-            dt,
-            false));
-        _movingRigidBodies.Value.ForEachChunk(new ChunkJob(
-            _transforms,
-            _velocities,
-            _movements,
-            _rigidBodies,
-            dt,
-            true));
+            dt));
     }
 
-    private static Vector3 GetTargetPosition(ref LerpMovement movement, Fix dt)
+    internal static Vector3 GetTargetPosition(ref LerpMovement movement, Fix dt)
     {
         if (movement.Duration <= Fix.Zero)
         {
@@ -76,35 +65,24 @@ public sealed class LerpMovementSystem : IUpdateSystem
         private readonly ComponentInject<Transform> _transforms;
         private readonly ComponentInject<Velocity> _velocities;
         private readonly ComponentInject<LerpMovement> _movements;
-        private readonly ComponentInject<RigidBody> _rigidBodies;
         private readonly Fix _dt;
-        private readonly bool _checkRigidBodyKind;
 
         public ChunkJob(
             ComponentInject<Transform> transforms,
             ComponentInject<Velocity> velocities,
             ComponentInject<LerpMovement> movements,
-            ComponentInject<RigidBody> rigidBodies,
-            Fix dt,
-            bool checkRigidBodyKind)
+            Fix dt)
         {
             _transforms = transforms;
             _velocities = velocities;
             _movements = movements;
-            _rigidBodies = rigidBodies;
             _dt = dt;
-            _checkRigidBodyKind = checkRigidBodyKind;
         }
 
         public void Execute(FilterChunk chunk)
         {
             foreach (Entity entity in chunk.Entities)
             {
-                if (_checkRigidBodyKind && _rigidBodies.Get(entity).Kind != PhysicsBodyKind.Kinematic)
-                {
-                    continue;
-                }
-
                 ref Transform transform = ref _transforms.Get(entity);
                 ref Velocity velocity = ref _velocities.Get(entity);
                 ref LerpMovement movement = ref _movements.Get(entity);

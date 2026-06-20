@@ -2,8 +2,8 @@ using Pixagen.Game.Features.PhysicsFeature.Components;
 using Pixagen.Game.Features.RenderFeature.Components;
 using Pixagen.Game.Features.UIFeature.Components;
 using Pixagen.Rendering;
-using FPSCharacterCameraComponent = Pixagen.Game.Features.FPSCharacterFeature.Components.FPSCharacterCamera;
-using FPSCharacterComponent = Pixagen.Game.Features.FPSCharacterFeature.Components.FPSCharacter;
+using FpsCameraCharacterComponent = Pixagen.Game.Features.CharacterFeature.Components.FpsCameraCharacter;
+using FpsCharacterComponent = Pixagen.Game.Features.CharacterFeature.Components.FpsCharacter;
 
 namespace Pixagen.Game.Features.ScenesFeature.Serialization;
 
@@ -15,7 +15,7 @@ public static class DefaultSceneFactory
     {
         var objects = new List<SceneObjectDefinition>
         {
-            CreateFPSCharacter(),
+            CreateCharacter(),
             CreateLight(),
             CreateSkybox(),
             CreateGround(),
@@ -33,42 +33,42 @@ public static class DefaultSceneFactory
         return new SceneDefinition
         {
             Id = "default",
-            Name = "Vertical FPS Prototype",
+            Name = "Vertical Character Prototype",
             Objects = objects
         };
     }
 
-    private static SceneObjectDefinition CreateFPSCharacter()
+    private static SceneObjectDefinition CreateCharacter()
     {
         return new SceneObjectDefinition
         {
             Components =
             [
-                new Info("fps-character", "FPS Character"),
+                new Info("character", "Character"),
                 new Transform(V(0, 0, -16)),
                 new Velocity(),
-                new FPSCharacterComponent(F(5), Fix.Two, F(5), F(1.05), F(0.6), F(1.75)),
+                new FpsCharacterComponent(F(5), Fix.Two, F(5), F(1.05), F(0.6), F(1.75)),
                 RigidBody.Dynamic(F(1), lockRotation: true),
                 Collider.Capsule(F(0.3), F(1.15))
             ],
             Children =
             [
-                CreateFPSCharacterCamera()
+                CreateFpsCameraCharacter()
             ]
         };
     }
 
-    private static SceneObjectDefinition CreateFPSCharacterCamera()
+    private static SceneObjectDefinition CreateFpsCameraCharacter()
     {
         return new SceneObjectDefinition
         {
             Components =
             [
-                new Info("fps-character-camera", "FPS Character Camera"),
+                new Info("character-camera", "Character Camera"),
                 new Transform(V(0, 0.875, -16)),
                 new LocalTransform(V(0, 0.875, 0)),
                 new Camera(Fix.One, Fix.One, F(9) / F(16), F(96)),
-                new FPSCharacterCameraComponent(Fix.Zero)
+                new FpsCameraCharacterComponent(Fix.Zero)
             ]
         };
     }

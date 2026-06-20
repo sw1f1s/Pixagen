@@ -1,4 +1,4 @@
-using Pixagen.Game.Features.FPSCharacterFeature.Components;
+using Pixagen.Game.Features.CharacterFeature.Components;
 using Pixagen.Game.Features.PhysicsFeature.Components;
 using Pixagen.Game.Features.RenderFeature.Components;
 using Pixagen.Game.Features.RenderFeature.Raycasting;
@@ -16,20 +16,20 @@ namespace Pixagen.Tests.Features.ScenesFeature;
 public sealed class SceneTests
 {
     [Fact]
-    public void DefaultSceneFactory_CreatesFPSCharacterWithCameraChild()
+    public void DefaultSceneFactory_CreatesCharacterWithCameraChild()
     {
         SceneDefinition scene = DefaultSceneFactory.Create();
 
-        SceneObjectDefinition character = scene.Objects.Single(obj => GetInfo(obj).Id == "fps-character");
-        Assert.Equal("FPS Character", GetInfo(character).Name);
-        Assert.Contains(character.Components, component => component is FPSCharacter);
+        SceneObjectDefinition character = scene.Objects.Single(obj => GetInfo(obj).Id == "character");
+        Assert.Equal("Character", GetInfo(character).Name);
+        Assert.Contains(character.Components, component => component is FpsCharacter);
         Assert.Contains(character.Components, component => component is RigidBody);
         Assert.Contains(character.Components, component => component is Collider);
 
         SceneObjectDefinition camera = Assert.Single(character.Children);
-        Assert.Equal("fps-character-camera", GetInfo(camera).Id);
+        Assert.Equal("character-camera", GetInfo(camera).Id);
         Assert.Contains(camera.Components, component => component is Camera);
-        Assert.Contains(camera.Components, component => component is FPSCharacterCamera);
+        Assert.Contains(camera.Components, component => component is FpsCameraCharacter);
         Assert.Contains(camera.Components, component => component is LocalTransform);
     }
 
@@ -126,8 +126,8 @@ public sealed class SceneTests
             $"{Guid.NewGuid():N}.scene.json");
         using var resources = new ResourceManager();
         SceneDefinition scene = CreateSimpleScene();
-        scene.Objects[0].Components.Add(new FPSCharacter(Fix.One, Fix.One));
-        scene.Objects[0].Children[0].Components.Add(new FPSCharacterCamera(Fix.Zero));
+        scene.Objects[0].Components.Add(new FpsCharacter(Fix.One, Fix.One));
+        scene.Objects[0].Children[0].Components.Add(new FpsCameraCharacter(Fix.Zero));
 
         resources.SaveScene(path, scene);
         SceneDefinition loaded = resources.LoadScene(path);
@@ -136,11 +136,11 @@ public sealed class SceneTests
         SceneObjectDefinition root = Assert.Single(loaded.Objects);
         Assert.Equal("root", GetInfo(root).Id);
         Assert.Contains(root.Components, component => component is Transform);
-        Assert.Contains(root.Components, component => component is FPSCharacter);
+        Assert.Contains(root.Components, component => component is FpsCharacter);
         SceneObjectDefinition child = Assert.Single(root.Children);
         Assert.Equal("child", GetInfo(child).Id);
         Assert.Contains(child.Components, component => component is LocalTransform);
-        Assert.Contains(child.Components, component => component is FPSCharacterCamera);
+        Assert.Contains(child.Components, component => component is FpsCameraCharacter);
     }
 
     [Fact]

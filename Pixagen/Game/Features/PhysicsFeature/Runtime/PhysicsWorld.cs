@@ -40,7 +40,7 @@ public sealed class PhysicsWorld : IDisposable, IDisposeInject
         if (rigidBody.Kind == PhysicsBodyKind.Static)
         {
             StaticHandle staticHandle = Simulation.Statics.Add(new StaticDescription(pose, shapeIndex));
-            _materials.Set(new CollidableReference(staticHandle), rigidBody);
+            _materials.Set(ToCollidableReference(new PhysicsBodyReference(staticHandle, shapeIndex)), rigidBody);
             return new PhysicsBodyReference(staticHandle, shapeIndex);
         }
 
@@ -51,8 +51,9 @@ public sealed class PhysicsWorld : IDisposable, IDisposeInject
         {
             BodyHandle kinematicHandle = Simulation.Bodies.Add(
                 BodyDescription.CreateKinematic(pose, collidable, activity));
-            _materials.Set(new CollidableReference(CollidableMobility.Kinematic, kinematicHandle), rigidBody);
-            return new PhysicsBodyReference(kinematicHandle, PhysicsBodyKind.Kinematic, shapeIndex);
+            PhysicsBodyReference reference = new(kinematicHandle, PhysicsBodyKind.Kinematic, shapeIndex);
+            _materials.Set(ToCollidableReference(reference), rigidBody);
+            return reference;
         }
 
         BodyInertia inertia = ComputeInertia(collider, MathF.Max(MinimumMass, PhysicsConvert.ToFloat(rigidBody.Mass)));
@@ -63,8 +64,9 @@ public sealed class PhysicsWorld : IDisposable, IDisposeInject
 
         BodyHandle dynamicHandle = Simulation.Bodies.Add(
             BodyDescription.CreateDynamic(pose, inertia, collidable, activity));
-        _materials.Set(new CollidableReference(CollidableMobility.Dynamic, dynamicHandle), rigidBody);
-        return new PhysicsBodyReference(dynamicHandle, PhysicsBodyKind.Dynamic, shapeIndex);
+        PhysicsBodyReference dynamicReference = new(dynamicHandle, PhysicsBodyKind.Dynamic, shapeIndex);
+        _materials.Set(ToCollidableReference(dynamicReference), rigidBody);
+        return dynamicReference;
     }
 
     public void Step(float deltaTime)
@@ -103,7 +105,6 @@ public sealed class PhysicsWorld : IDisposable, IDisposeInject
         NumericVector3 nextPosition = PhysicsConvert.ToFloat(transform.Position);
         NumericQuaternion nextRotation = PhysicsConvert.ToFloat(transform.Rotation);
         NumericVector3 previousPosition = body.Pose.Position;
-        body.Pose.Position = nextPosition;
         body.Pose.Orientation = nextRotation;
         body.Velocity.Linear = (nextPosition - previousPosition) / MathF.Max(0.0001f, deltaTime);
         body.Velocity.Angular = NumericVector3.Zero;
@@ -147,15 +148,48 @@ public sealed class PhysicsWorld : IDisposable, IDisposeInject
         float distance,
         float minimumNormalY)
     {
+        return TryGetGroundHit(reference, origin, distance, minimumNormalY, out _);
+    }
+
+    public bool TryGetGroundHit(
+        PhysicsBodyReference reference,
+        NumericVector3 origin,
+        float distance,
+        float minimumNormalY,
+        out PhysicsGroundHit hit)
+    {
         if (distance <= 0)
         {
+            hit = default;
             return false;
         }
 
         NumericVector3 direction = new(0, -1, 0);
-        var handler = new GroundRayHitHandler(reference.BodyHandle, minimumNormalY);
+        var handler = new GroundRayHitHandler(reference, minimumNormalY);
         Simulation.RayCast(in origin, in direction, distance, ref handler);
-        return handler.Hit;
+        if (!handler.Hit)
+        {
+            hit = default;
+            return false;
+        }
+
+        hit = new PhysicsGroundHit(
+            handler.Distance,
+            origin + direction * handler.Distance,
+            handler.Normal,
+            GetLinearVelocity(handler.Collidable),
+            handler.Collidable);
+        return true;
+    }
+
+    public void SetBodyMaterial(PhysicsBodyReference reference, RigidBody rigidBody)
+    {
+        if (!reference.Active)
+        {
+            return;
+        }
+
+        _materials.Set(ToCollidableReference(reference), rigidBody);
     }
 
     public void Dispose()
@@ -225,24 +259,56 @@ public sealed class PhysicsWorld : IDisposable, IDisposeInject
         return new RigidPose(position, rotation);
     }
 
+    private NumericVector3 GetLinearVelocity(CollidableReference collidable)
+    {
+        if (collidable.Mobility == CollidableMobility.Static ||
+            !Simulation.Bodies.BodyExists(collidable.BodyHandle))
+        {
+            return NumericVector3.Zero;
+        }
+
+        return Simulation.Bodies[collidable.BodyHandle].Velocity.Linear;
+    }
+
+    private static CollidableReference ToCollidableReference(PhysicsBodyReference reference)
+    {
+        return reference.Kind switch
+        {
+            PhysicsBodyKind.Static => new CollidableReference(reference.StaticHandle),
+            PhysicsBodyKind.Kinematic => new CollidableReference(CollidableMobility.Kinematic, reference.BodyHandle),
+            _ => new CollidableReference(CollidableMobility.Dynamic, reference.BodyHandle)
+        };
+    }
+
     private struct GroundRayHitHandler : IRayHitHandler
     {
-        private readonly BodyHandle _ignoredBody;
+        private readonly CollidableReference _ignoredCollidable;
+        private readonly bool _hasIgnoredCollidable;
         private readonly float _minimumNormalY;
 
-        public GroundRayHitHandler(BodyHandle ignoredBody, float minimumNormalY)
+        public GroundRayHitHandler(PhysicsBodyReference ignoredReference, float minimumNormalY)
         {
-            _ignoredBody = ignoredBody;
+            _ignoredCollidable = ignoredReference.Active
+                ? ToCollidableReference(ignoredReference)
+                : default;
+            _hasIgnoredCollidable = ignoredReference.Active;
             _minimumNormalY = minimumNormalY;
             Hit = false;
+            Distance = 0;
+            Normal = default;
+            Collidable = default;
         }
 
         public bool Hit { get; private set; }
+        public float Distance { get; private set; }
+        public NumericVector3 Normal { get; private set; }
+        public CollidableReference Collidable { get; private set; }
 
         public bool AllowTest(CollidableReference collidable)
         {
-            return collidable.Mobility != CollidableMobility.Dynamic ||
-                collidable.BodyHandle.Value != _ignoredBody.Value;
+            return !_hasIgnoredCollidable ||
+                collidable.Mobility != _ignoredCollidable.Mobility ||
+                collidable.RawHandleValue != _ignoredCollidable.RawHandleValue;
         }
 
         public bool AllowTest(CollidableReference collidable, int childIndex)
@@ -264,7 +330,33 @@ public sealed class PhysicsWorld : IDisposable, IDisposeInject
             }
 
             Hit = true;
+            Distance = t;
+            Normal = normal;
+            Collidable = collidable;
             maximumT = t;
         }
+    }
+}
+
+public readonly struct PhysicsGroundHit
+{
+    public readonly float Distance;
+    public readonly NumericVector3 Position;
+    public readonly NumericVector3 Normal;
+    public readonly NumericVector3 Velocity;
+    public readonly CollidableReference Collidable;
+
+    public PhysicsGroundHit(
+        float distance,
+        NumericVector3 position,
+        NumericVector3 normal,
+        NumericVector3 velocity,
+        CollidableReference collidable)
+    {
+        Distance = distance;
+        Position = position;
+        Normal = normal;
+        Velocity = velocity;
+        Collidable = collidable;
     }
 }

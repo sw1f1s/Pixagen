@@ -16,6 +16,7 @@ public sealed class PhysicsFeatureSystemsGroup : IGroupSystem
     [
         new PhysicsBodyCreationSystem(),
         new PhysicsBodyActivationSystem(),
+        new PhysicsKinematicMotionSystem(),
         new PhysicsKinematicSyncSystem(),
         new PhysicsStepSystem(),
         new PhysicsSyncTransformSystem(),

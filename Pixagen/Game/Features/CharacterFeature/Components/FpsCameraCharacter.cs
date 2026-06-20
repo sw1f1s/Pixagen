@@ -1,7 +1,7 @@
 
-namespace Pixagen.Game.Features.FPSCharacterFeature.Components;
+namespace Pixagen.Game.Features.CharacterFeature.Components;
 
-public struct FPSCharacterCamera : IComponent
+public struct FpsCameraCharacter : IComponent
 {
     public static readonly Fix DefaultMaxPitch = Fix.Pi * new Fix(85) / new Fix(180);
     public static readonly Fix DefaultMinPitch = Fix.Zero - DefaultMaxPitch;
@@ -10,12 +10,12 @@ public struct FPSCharacterCamera : IComponent
     public Fix MinPitch;
     public Fix MaxPitch;
 
-    public FPSCharacterCamera(Fix pitch)
+    public FpsCameraCharacter(Fix pitch)
         : this(pitch, DefaultMinPitch, DefaultMaxPitch)
     {
     }
 
-    public FPSCharacterCamera(Fix pitch, Fix minPitch, Fix maxPitch)
+    public FpsCameraCharacter(Fix pitch, Fix minPitch, Fix maxPitch)
     {
         Pitch = pitch;
         MinPitch = minPitch;

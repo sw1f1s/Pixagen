@@ -1,20 +1,20 @@
 using Pixagen.Game.Features.RenderFeature.Components;
 using Pixagen.Game.Features.RenderFeature.Raycasting;
 using Pixagen.Ecs.DI;
-using Pixagen.Game.Features.FPSCharacterFeature.Components;
+using Pixagen.Game.Features.CharacterFeature.Components;
 using Pixagen.Game.Features.SharedFeature.Helper;
 
-namespace Pixagen.Game.Features.FPSCharacterFeature.Systems;
+namespace Pixagen.Game.Features.CharacterFeature.Systems;
 
-public sealed class FPSCharacterInputSystem : IUpdateSystem
+public sealed class CharacterInputSystem : IUpdateSystem
 {
     private static readonly Fix MouseDeltaScale = Fix.One / new Fix(70);
 
     private readonly CustomInject<Time> _time = default;
     private readonly CustomInject<InputState> _input = default;
-    private readonly FilterInject<Include<FPSCharacter, Transform, Velocity>, Exclude<IsStaticRender>> _characters = default;
+    private readonly FilterInject<Include<FpsCharacter, Transform, Velocity>, Exclude<IsStaticRender>> _characters = default;
     private readonly CustomInject<EntityStateHelper> _entityState = default;
-    private readonly ComponentInject<FPSCharacter> _fpsCharacters = default;
+    private readonly ComponentInject<FpsCharacter> _characterComponents = default;
     private readonly ComponentInject<Transform> _transforms = default;
     private readonly ComponentInject<Velocity> _velocities = default;
 
@@ -31,7 +31,7 @@ public sealed class FPSCharacterInputSystem : IUpdateSystem
                 continue;
             }
 
-            ref FPSCharacter character = ref _fpsCharacters.Get(entity);
+            ref FpsCharacter character = ref _characterComponents.Get(entity);
             ref Transform transform = ref _transforms.Get(entity);
             ref Velocity velocity = ref _velocities.Get(entity);
 

@@ -1,19 +1,19 @@
 using Pixagen.Game.Features.SharedFeature.Helper;
 using Pixagen.Ecs.DI;
-using Pixagen.Game.Features.FPSCharacterFeature.Components;
+using Pixagen.Game.Features.CharacterFeature.Components;
 
-namespace Pixagen.Game.Features.FPSCharacterFeature.Systems;
+namespace Pixagen.Game.Features.CharacterFeature.Systems;
 
-public sealed class FPSCharacterCameraInputSystem : IUpdateSystem
+public sealed class FpsCameraCharacterInputSystem : IUpdateSystem
 {
     private static readonly Fix MouseDeltaScale = Fix.One / new Fix(70);
 
     private readonly CustomInject<Time> _time = default;
     private readonly CustomInject<InputState> _input = default;
-    private readonly FilterInject<Include<FPSCharacterCamera, LocalTransform, Parent>> _cameras = default;
+    private readonly FilterInject<Include<FpsCameraCharacter, LocalTransform, Parent>> _cameras = default;
     private readonly CustomInject<EntityStateHelper> _entityState = default;
-    private readonly ComponentInject<FPSCharacterCamera> _fpsCameras = default;
-    private readonly ComponentInject<FPSCharacter> _fpsCharacters = default;
+    private readonly ComponentInject<FpsCameraCharacter> _cameraComponents = default;
+    private readonly ComponentInject<FpsCharacter> _characterComponents = default;
     private readonly ComponentInject<LocalTransform> _localTransforms = default;
     private readonly ComponentInject<Parent> _parents = default;
 
@@ -33,12 +33,12 @@ public sealed class FPSCharacterCameraInputSystem : IUpdateSystem
             ref Parent parent = ref _parents.Get(entity);
             if (parent.Entity == Entity.Empty ||
                 !_entityState.Value.IsAlive(parent.Entity) ||
-                !_fpsCharacters.Has(parent.Entity))
+                !_characterComponents.Has(parent.Entity))
             {
                 continue;
             }
 
-            ref FPSCharacter character = ref _fpsCharacters.Get(parent.Entity);
+            ref FpsCharacter character = ref _characterComponents.Get(parent.Entity);
             Fix pitchDelta =
                 new Fix(Axis(input, InputKey.Down, InputKey.Up)) * character.CameraRotationSpeed * dt +
                 new Fix(input.MouseDeltaY) * character.CameraRotationSpeed * MouseDeltaScale;
@@ -49,10 +49,10 @@ public sealed class FPSCharacterCameraInputSystem : IUpdateSystem
 
     private void ApplyCameraPitch(Entity entity, Fix pitchDelta)
     {
-        ref FPSCharacterCamera camera = ref _fpsCameras.Get(entity);
+        ref FpsCameraCharacter camera = ref _cameraComponents.Get(entity);
         camera.EnsurePitchLimits();
 
-        Fix nextPitch = FPSCharacterCamera.Clamp(
+        Fix nextPitch = FpsCameraCharacter.Clamp(
             camera.Pitch + pitchDelta,
             camera.MinPitch,
             camera.MaxPitch);
