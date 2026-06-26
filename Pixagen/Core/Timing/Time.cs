@@ -33,7 +33,7 @@ public sealed class Time
         Advance(deltaTime, ElapsedTime + ClampDeltaTime(deltaTime));
     }
 
-    internal int ConsumeFixedSteps()
+    public int ConsumeFixedSteps()
     {
         if (FixedDeltaTime <= Fix.Zero || MaxFixedStepsPerFrame <= 0)
         {

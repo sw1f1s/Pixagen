@@ -6,12 +6,22 @@ internal sealed class VulkanRenderTargets : IDisposable
 {
     private const int OverlaySafeInsetPixels = 2;
 
+    private enum OverlayDrawKind
+    {
+        Line,
+        Rect,
+        Text
+    }
+
+    private readonly record struct OrderedOverlayCommand(int Order, OverlayDrawKind Kind, object Command);
+
     private readonly RgbaByte[] _fallbackScenePixel = [new(0, 0, 0, 255)];
     private UiOverlayBuffer? _uiOverlay;
     private Texture? _sceneTexture;
     private TextureView? _sceneTextureView;
     private Texture? _overlayTexture;
     private TextureView? _overlayTextureView;
+    private RgbaByte[] _scenePixels = [];
     private RgbaByte[] _overlayPixels = [];
     private int _sceneTextureWidth;
     private int _sceneTextureHeight;
@@ -82,6 +92,46 @@ internal sealed class VulkanRenderTargets : IDisposable
 
     public void MarkSceneTextureUpdatedByCompute()
     {
+        _sceneTextureHasFallback = false;
+    }
+
+    public void UpdateSceneTexture(
+        GraphicsDevice graphicsDevice,
+        VulkanGpuFrameTracker frameTracker,
+        FrameBuffer frameBuffer,
+        Action invalidateDependentResourceSets)
+    {
+        EnsureSceneTexture(
+            graphicsDevice,
+            frameTracker,
+            frameBuffer.Width,
+            frameBuffer.Height,
+            invalidateDependentResourceSets);
+        int pixelCount = frameBuffer.Width * frameBuffer.Height;
+        if (_scenePixels.Length != pixelCount)
+        {
+            _scenePixels = new RgbaByte[pixelCount];
+        }
+
+        ReadOnlySpan<FrameCell> cells = frameBuffer.Cells;
+        for (int i = 0; i < cells.Length; i++)
+        {
+            FrameCell cell = cells[i];
+            PixelColor color = cell.Color;
+            _scenePixels[i] = new RgbaByte(color.R, color.G, color.B, cell.Alpha);
+        }
+
+        graphicsDevice.UpdateTexture(
+            _sceneTexture!,
+            _scenePixels,
+            0,
+            0,
+            0,
+            (uint)frameBuffer.Width,
+            (uint)frameBuffer.Height,
+            1,
+            0,
+            0);
         _sceneTextureHasFallback = false;
     }
 
@@ -173,18 +223,120 @@ internal sealed class VulkanRenderTargets : IDisposable
             throw new InvalidOperationException($"{nameof(VulkanRenderTargets)} requires {nameof(UiOverlayBuffer)}.");
         Array.Fill(_overlayPixels, new RgbaByte(0, 0, 0, 0));
 
+        var orderedCommands = new List<OrderedOverlayCommand>(
+            uiOverlay.Lines.Count + uiOverlay.Rects.Count + uiOverlay.Texts.Count);
+        foreach (UiLineDrawCommand line in uiOverlay.Lines)
+        {
+            orderedCommands.Add(new OrderedOverlayCommand(line.Order, OverlayDrawKind.Line, line));
+        }
+
+        foreach (UiRectDrawCommand rect in uiOverlay.Rects)
+        {
+            orderedCommands.Add(new OrderedOverlayCommand(rect.Order, OverlayDrawKind.Rect, rect));
+        }
+
         foreach (UiTextDrawCommand text in uiOverlay.Texts)
         {
-            StrokeFont.DrawText(
-                _overlayPixels,
-                _overlayTextureWidth,
-                _overlayTextureHeight,
-                text with
+            orderedCommands.Add(new OrderedOverlayCommand(text.Order, OverlayDrawKind.Text, text));
+        }
+
+        foreach (OrderedOverlayCommand command in orderedCommands
+            .OrderBy(command => command.Order)
+            .ThenBy(command => command.Kind))
+        {
+            switch (command.Kind)
+            {
+                case OverlayDrawKind.Line:
+                    DrawLine((UiLineDrawCommand)command.Command);
+                    break;
+                case OverlayDrawKind.Rect:
+                    DrawRect((UiRectDrawCommand)command.Command);
+                    break;
+                case OverlayDrawKind.Text:
+                    var text = (UiTextDrawCommand)command.Command;
+                    StrokeFont.DrawText(
+                        _overlayPixels,
+                        _overlayTextureWidth,
+                        _overlayTextureHeight,
+                        text with
+                        {
+                            X = text.X + OverlaySafeInsetPixels,
+                            Y = text.Y + OverlaySafeInsetPixels
+                        },
+                        Math.Max(1, cellPixelSize));
+                    break;
+            }
+        }
+    }
+
+    private void DrawRect(UiRectDrawCommand rect)
+    {
+        int thickness = Math.Max(1, rect.Thickness);
+        int right = rect.X + rect.Width - 1;
+        int bottom = rect.Y + rect.Height - 1;
+        DrawLine(new UiLineDrawCommand(rect.X, rect.Y, right, rect.Y, rect.Order, rect.Color, thickness));
+        DrawLine(new UiLineDrawCommand(rect.X, rect.Y, rect.X, bottom, rect.Order, rect.Color, thickness));
+        DrawLine(new UiLineDrawCommand(right, rect.Y, right, bottom, rect.Order, rect.Color, thickness));
+        DrawLine(new UiLineDrawCommand(rect.X, bottom, right, bottom, rect.Order, rect.Color, thickness));
+    }
+
+    private void DrawLine(UiLineDrawCommand line)
+    {
+        int x0 = line.X0 + OverlaySafeInsetPixels;
+        int y0 = line.Y0 + OverlaySafeInsetPixels;
+        int x1 = line.X1 + OverlaySafeInsetPixels;
+        int y1 = line.Y1 + OverlaySafeInsetPixels;
+        int dx = Math.Abs(x1 - x0);
+        int sx = x0 < x1 ? 1 : -1;
+        int dy = -Math.Abs(y1 - y0);
+        int sy = y0 < y1 ? 1 : -1;
+        int error = dx + dy;
+
+        while (true)
+        {
+            DrawPoint(x0, y0, line.Color, line.Thickness);
+            if (x0 == x1 && y0 == y1)
+            {
+                break;
+            }
+
+            int e2 = 2 * error;
+            if (e2 >= dy)
+            {
+                error += dy;
+                x0 += sx;
+            }
+
+            if (e2 <= dx)
+            {
+                error += dx;
+                y0 += sy;
+            }
+        }
+    }
+
+    private void DrawPoint(int x, int y, PixelColor color, int thickness)
+    {
+        int radius = Math.Max(1, thickness);
+        var pixel = new RgbaByte(color.R, color.G, color.B, 255);
+        for (int offsetY = 0; offsetY < radius; offsetY++)
+        {
+            int py = y + offsetY;
+            if ((uint)py >= (uint)_overlayTextureHeight)
+            {
+                continue;
+            }
+
+            for (int offsetX = 0; offsetX < radius; offsetX++)
+            {
+                int px = x + offsetX;
+                if ((uint)px >= (uint)_overlayTextureWidth)
                 {
-                    X = text.X + OverlaySafeInsetPixels,
-                    Y = text.Y + OverlaySafeInsetPixels
-                },
-                Math.Max(1, cellPixelSize));
+                    continue;
+                }
+
+                _overlayPixels[py * _overlayTextureWidth + px] = pixel;
+            }
         }
     }
 }

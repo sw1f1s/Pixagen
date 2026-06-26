@@ -21,6 +21,8 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
     private GraphicsDevice? _graphicsDevice;
     private CommandList? _commandList;
     private RenderBackendOptions _options = null!;
+    private int _embeddedWidth;
+    private int _embeddedHeight;
     private bool _closeRequested;
     private bool _hasComputeSceneFrame;
     private int _currentRenderCalls;
@@ -32,7 +34,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         _gpuFrames = new VulkanGpuFrameTracker(performanceStats);
     }
 
-    public bool IsCloseRequested => _gpuFrames.IsStalled || _closeRequested || _window is not { Exists: true };
+    public bool IsCloseRequested => _gpuFrames.IsStalled || _closeRequested || (_window is not null && !_window.Exists);
 
     public void SetUiOverlayBuffer(UiOverlayBuffer uiOverlay)
     {
@@ -41,6 +43,7 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 
     public void Initialize(RenderBackendOptions options)
     {
+        ThrowIfInitialized();
         _options = options;
         VulkanNativeEnvironment.Configure();
 
@@ -57,18 +60,53 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         _window.Resizable = !options.Fullscreen;
         _window.Closing += () => _closeRequested = true;
         VulkanNativeEnvironment.ApplyWindowMode(_window, options);
+        InitializeGraphicsDevice();
+    }
 
-        GraphicsDeviceOptions graphicsOptions = new(
-            debug: false,
-            swapchainDepthFormat: null,
-            syncToVerticalBlank: true,
-            resourceBindingModel: ResourceBindingModel.Improved,
-            preferStandardClipSpaceYDirection: true,
-            preferDepthRangeZeroToOne: true);
+    public void InitializeFromNativeWindow(
+        RenderBackendOptions options,
+        IntPtr nativeWindowHandle,
+        string? handleDescriptor = null)
+    {
+        if (nativeWindowHandle == IntPtr.Zero)
+        {
+            throw new ArgumentException("Embedded Vulkan backend requires a non-zero native window handle.", nameof(nativeWindowHandle));
+        }
 
+        ThrowIfInitialized();
+        _options = options;
+        VulkanNativeEnvironment.Configure();
+
+        if (OperatingSystem.IsMacOS())
+        {
+            InitializeEmbeddedSwapchain(
+                CreateMacOSSwapchainSource(nativeWindowHandle, handleDescriptor),
+                options.WindowWidth,
+                options.WindowHeight);
+            return;
+        }
+
+        _window = new Sdl2Window(nativeWindowHandle, threadedProcessing: false)
+        {
+            CursorVisible = options.ShowCursor,
+            Resizable = false
+        };
+        _window.Closing += () => _closeRequested = true;
+        InitializeGraphicsDevice();
+    }
+
+    public void ResizeEmbeddedSurface(int width, int height)
+    {
+        _embeddedWidth = Math.Max(1, width);
+        _embeddedHeight = Math.Max(1, height);
+    }
+
+    private void InitializeGraphicsDevice()
+    {
+        GraphicsDeviceOptions graphicsOptions = CreateGraphicsDeviceOptions();
         try
         {
-            _graphicsDevice = VeldridStartup.CreateGraphicsDevice(_window, graphicsOptions, GraphicsBackend.Vulkan);
+            _graphicsDevice = VeldridStartup.CreateGraphicsDevice(RequireWindow(), graphicsOptions, GraphicsBackend.Vulkan);
         }
         catch (Exception exception) when (VulkanNativeEnvironment.IsVulkanLoaderFailure(exception))
         {
@@ -80,18 +118,54 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         }
 
         _commandList = _graphicsDevice.ResourceFactory.CreateCommandList();
-        _window.Resized += ResizeSwapchain;
+        RequireWindow().Resized += ResizeSwapchain;
         ResizeSwapchain();
 
+        WarmUpShaders();
+    }
+
+    private void InitializeEmbeddedSwapchain(SwapchainSource source, int width, int height)
+    {
+        _embeddedWidth = Math.Max(1, width);
+        _embeddedHeight = Math.Max(1, height);
+
+        GraphicsDeviceOptions graphicsOptions = CreateGraphicsDeviceOptions();
+        var swapchainDescription = new SwapchainDescription(
+            source,
+            (uint)_embeddedWidth,
+            (uint)_embeddedHeight,
+            depthFormat: null,
+            syncToVerticalBlank: true,
+            colorSrgb: false);
+
+        try
+        {
+            _graphicsDevice = GraphicsDevice.CreateVulkan(graphicsOptions, swapchainDescription);
+        }
+        catch (Exception exception) when (VulkanNativeEnvironment.IsVulkanLoaderFailure(exception))
+        {
+            throw new InvalidOperationException(
+                "Vulkan loader was not found. On macOS the app needs MoltenVK/libvulkan.dylib in the build output " +
+                "or an installed Vulkan SDK. Rebuild the project so native MoltenVK assets are copied, or install " +
+                "the Vulkan SDK and make libvulkan.dylib visible to the process.",
+                exception);
+        }
+
+        _commandList = _graphicsDevice.ResourceFactory.CreateCommandList();
+        ResizeSwapchain();
         WarmUpShaders();
     }
 
     public void PumpInput(IRenderInputSink input)
     {
         _gpuFrames.PollCompleted();
-        Sdl2Window window = RequireWindow();
         input.BeginFrame();
+        if (_window is null)
+        {
+            return;
+        }
 
+        Sdl2Window window = _window;
         InputSnapshot snapshot = window.PumpEvents();
         foreach (KeyEvent keyEvent in snapshot.KeyEvents)
         {
@@ -101,10 +175,24 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
             }
         }
 
+        input.SetMousePosition(snapshot.MousePosition.X, snapshot.MousePosition.Y);
+        foreach (MouseEvent mouseEvent in snapshot.MouseEvents)
+        {
+            if (VulkanInputMapper.TryMapMouseButton(mouseEvent.MouseButton, out RenderMouseButton button))
+            {
+                input.SetMouseButton(button, mouseEvent.Down);
+            }
+        }
+
         Vector2 mouseDelta = window.MouseDelta;
         if (_options.CaptureMouse)
         {
             input.AddMouseDelta(mouseDelta.X, mouseDelta.Y);
+        }
+
+        if (MathF.Abs(snapshot.WheelDelta) > float.Epsilon)
+        {
+            input.AddMouseWheelDelta(snapshot.WheelDelta);
         }
 
         if (!window.Exists)
@@ -115,8 +203,15 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 
     public (int Width, int Height) GetFrameBufferSize()
     {
-        Sdl2Window window = RequireWindow();
         int cellSize = Math.Max(1, _options.CellPixelSize);
+        if (_window is null)
+        {
+            return (
+                Math.Max(1, _embeddedWidth / cellSize),
+                Math.Max(1, _embeddedHeight / cellSize));
+        }
+
+        Sdl2Window window = _window;
         return (
             Math.Max(1, window.Width / cellSize),
             Math.Max(1, window.Height / cellSize));
@@ -135,9 +230,10 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         int overlayHeight = frameBuffer.Height * _options.CellPixelSize;
 
         _gpuFrames.Throttle(graphicsDevice);
+        ResizeSwapchain();
         if (!_hasComputeSceneFrame)
         {
-            _targets.EnsureFallbackSceneTexture(graphicsDevice, _gpuFrames, InvalidateSceneDependentResourceSets);
+            _targets.UpdateSceneTexture(graphicsDevice, _gpuFrames, frameBuffer, InvalidateSceneDependentResourceSets);
         }
 
         _targets.UpdateOverlayTexture(
@@ -202,6 +298,25 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
         _window?.Close();
     }
 
+    private void ThrowIfInitialized()
+    {
+        if (_window is not null || _graphicsDevice is not null)
+        {
+            throw new InvalidOperationException("Vulkan window backend is already initialized.");
+        }
+    }
+
+    private static GraphicsDeviceOptions CreateGraphicsDeviceOptions()
+    {
+        return new GraphicsDeviceOptions(
+            debug: false,
+            swapchainDepthFormat: null,
+            syncToVerticalBlank: true,
+            resourceBindingModel: ResourceBindingModel.Improved,
+            preferStandardClipSpaceYDirection: true,
+            preferDepthRangeZeroToOne: true);
+    }
+
     private void SubmitRaycastComputePass(GraphicsDevice graphicsDevice, CommandList commandList)
     {
         _gpuFrames.BeginGpuWork();
@@ -258,12 +373,37 @@ public sealed class VulkanWindowBackend : IRenderBackend, IRaycastComputeRendere
 
     private void ResizeSwapchain()
     {
-        if (_graphicsDevice is null || _window is null || _window.Width <= 0 || _window.Height <= 0)
+        if (_graphicsDevice is null)
         {
             return;
         }
 
-        _graphicsDevice.MainSwapchain.Resize((uint)_window.Width, (uint)_window.Height);
+        int desiredWidth = _window?.Width ?? _embeddedWidth;
+        int desiredHeight = _window?.Height ?? _embeddedHeight;
+        if (desiredWidth <= 0 || desiredHeight <= 0)
+        {
+            return;
+        }
+
+        uint width = (uint)Math.Max(1, desiredWidth);
+        uint height = (uint)Math.Max(1, desiredHeight);
+        if (_graphicsDevice.MainSwapchain.Framebuffer.Width == width &&
+            _graphicsDevice.MainSwapchain.Framebuffer.Height == height)
+        {
+            return;
+        }
+
+        _graphicsDevice.MainSwapchain.Resize(width, height);
+    }
+
+    private static SwapchainSource CreateMacOSSwapchainSource(IntPtr nativeWindowHandle, string? handleDescriptor)
+    {
+        if (handleDescriptor?.Contains("NSWindow", StringComparison.OrdinalIgnoreCase) == true)
+        {
+            return SwapchainSource.CreateNSWindow(nativeWindowHandle);
+        }
+
+        return SwapchainSource.CreateNSView(nativeWindowHandle);
     }
 
     private Sdl2Window RequireWindow()

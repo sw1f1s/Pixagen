@@ -1,6 +1,6 @@
 namespace Pixagen.Core.Runtime;
 
-internal static class NativeRuntimeEnvironment
+public static class NativeRuntimeEnvironment
 {
     public static void Configure()
     {

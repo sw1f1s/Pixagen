@@ -1,0 +1,47 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>Pixagen.Editor</AssemblyName>
+    <RootNamespace>Pixagen.Editor</RootNamespace>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <NoWarn>$(NoWarn);CS0693;CS8601;CS8603;CS8618;CS8625</NoWarn>
+    <UsedAvaloniaProducts></UsedAvaloniaProducts>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) Or $([System.Text.RegularExpressions.Regex]::IsMatch('$(RuntimeIdentifier);$(NETCoreSdkRuntimeIdentifier)', '(^|;)osx-'))">
+    <DefineConstants>$(DefineConstants);MACOS</DefineConstants>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="../Pixagen/Pixagen.csproj" />
+    <ProjectReference Include="../Pixagen.Ecs/Pixagen.Ecs.csproj" />
+    <ProjectReference Include="../Pixagen.Rendering/Pixagen.Rendering.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets/Fonts/PressStart2P/*.ttf" />
+    <Content Include="../Pixagen/Content/Shaders/Vulkan/*.glsl" Link="Content/Shaders/Vulkan/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../Pixagen/Content/Meshes/*.obj" Link="Content/Meshes/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../Pixagen/Content/Textures/*.ppm" Link="Content/Textures/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="../Pixagen/Content/Scenes/*.json" Link="Content/Scenes/%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Desktop" Version="12.0.4" />
+  </ItemGroup>
+
+  <Target Name="CopySdlNativeAliases" AfterTargets="Build">
+    <Copy SourceFiles="$(OutDir)runtimes/osx/native/libSDL2-2.0.dylib" DestinationFiles="$(OutDir)libsdl2.dylib" SkipUnchangedFiles="true" Condition="Exists('$(OutDir)runtimes/osx/native/libSDL2-2.0.dylib')" />
+    <Copy SourceFiles="$(OutDir)runtimes/linux-x64/native/libSDL2-2.0.so" DestinationFiles="$(OutDir)libsdl2.so" SkipUnchangedFiles="true" Condition="Exists('$(OutDir)runtimes/linux-x64/native/libSDL2-2.0.so')" />
+    <Copy SourceFiles="$(OutDir)runtimes/win-x64/native/SDL2.dll" DestinationFiles="$(OutDir)SDL2.dll" SkipUnchangedFiles="true" Condition="Exists('$(OutDir)runtimes/win-x64/native/SDL2.dll')" />
+  </Target>
+
+  <Target Name="CopyVulkanNativeAliases" AfterTargets="Build">
+    <Copy SourceFiles="$(OutDir)libvulkan.1.dylib" DestinationFiles="$(OutDir)libvulkan.dylib" SkipUnchangedFiles="true" Condition="$([MSBuild]::IsOSPlatform('OSX')) And Exists('$(OutDir)libvulkan.1.dylib')" />
+    <Copy SourceFiles="$(OutDir)libMoltenVK.dylib" DestinationFiles="$(OutDir)libvulkan.dylib" SkipUnchangedFiles="true" Condition="$([MSBuild]::IsOSPlatform('OSX')) And !Exists('$(OutDir)libvulkan.1.dylib') And Exists('$(OutDir)libMoltenVK.dylib')" />
+  </Target>
+
+</Project>

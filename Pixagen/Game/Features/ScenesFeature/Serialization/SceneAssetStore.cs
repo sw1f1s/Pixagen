@@ -26,14 +26,29 @@ public sealed class SceneAssetStore
 
     public void Save(string path, SceneDefinition scene)
     {
-        string? directory = Path.GetDirectoryName(path);
-        if (!string.IsNullOrEmpty(directory))
-        {
-            Directory.CreateDirectory(directory);
-        }
+        string fullPath = Path.GetFullPath(path);
+        string directory = Path.GetDirectoryName(fullPath) ?? AppContext.BaseDirectory;
+        Directory.CreateDirectory(directory);
 
-        using FileStream stream = File.Create(path);
-        JsonSerializer.Serialize(stream, scene, Options);
+        string tempPath = Path.Combine(
+            directory,
+            $".{Path.GetFileName(fullPath)}.{Guid.NewGuid():N}.tmp");
+        try
+        {
+            using (FileStream stream = File.Create(tempPath))
+            {
+                JsonSerializer.Serialize(stream, scene, Options);
+            }
+
+            File.Move(tempPath, fullPath, overwrite: true);
+        }
+        finally
+        {
+            if (File.Exists(tempPath))
+            {
+                File.Delete(tempPath);
+            }
+        }
     }
 
     private static JsonSerializerOptions CreateOptions()
